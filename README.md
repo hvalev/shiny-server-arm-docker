@@ -27,7 +27,10 @@ services:
 ```
 
 # Dockerhub
-Precompiled image is available from on docker hub here (TBD). Compressed image size - 1.7GB, uncompressed - 4.3GB
+Precompiled image is available from on docker hub here https://hub.docker.com/repository/docker/hvalev/rpi-shiny-server-docker. Compressed image size - 1.7GB, uncompressed - 4.3GB
+```
+docker pull hvalev/rpi-shiny-server-docker
+```
 
 # Credit
 The following resources were very helpful </br>
