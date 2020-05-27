@@ -55,7 +55,7 @@ R -e "install.packages(c('rcicr','shinyjs','filelock'), repos='http://cran.rstud
 ## Dockerfile
 Here are some excerpts from the Dockerfile with some explanation on changes you can make.
 
-### Installing R
+### R
 ```
 WORKDIR /usr/local/src
 RUN wget https://cran.rstudio.com/src/base/R-4/R-4.0.0.tar.gz
@@ -71,13 +71,13 @@ RUN rm -rf R-4.0.0*
 ```
 When installing R from source, you can compile it with blas and lapack support by switching the comment on the ./configure statements
 
-## Installing R libs
+### R libs
 ```
 RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/')"
 ```
 Cairo is needed for the hello-world preloaded app. If it's missing the histogram won't be loaded
 
-## Cmake
+### Cmake
 ```
 #Info: libssl-dev is required to compile cmake 3.17.2, for 3.17.0 it's not needed
 WORKDIR /usr/local/src
