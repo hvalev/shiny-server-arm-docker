@@ -105,7 +105,7 @@ RUN chmod -R 777 /var/lib/shiny-server
 RUN chmod -R 777 /srv/shiny-server
 
 RUN apt-get update -y
-RUN apt-get install -y gfortran libreadline6-dev libcurl4-openssl-dev libcairo2-dev xvfb libx11-dev libxt-dev libpng-dev libjpeg-dev libbz2-dev libzstd-dev liblzma-dev libatomic1 libgomp1 libpcre2-8-0 make
+RUN apt-get install -y gfortran libreadline6-dev libcurl4-openssl-dev libcairo2-dev xvfb libx11-dev libxt-dev libpng-dev libjpeg-dev libbz2-dev libzstd-dev liblzma-dev libatomic1 libgomp1 libpcre2-8-0 g++ make
 
 #RUN apt-get install libatomic1 libgomp1 
 #RUN apt-get install nano -y
