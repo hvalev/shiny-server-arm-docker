@@ -15,15 +15,35 @@ Note: Adjust your paths accordingly
 version: "3.8"
 services:
   rpi-shiny-server:
+    image: hvalev/rpi-shiny-server-docker
     container_name: rpi-shiny-server
-    build: https://github.com/hvalev/rpi-shiny-server-docker.git
     ports:
       - 3838:3838
     volumes:
-      - shiny-server/logs/:/var/log/shiny-server/
-      - shiny-server/apps/:/srv/shiny-server/
-      - shiny-server/conf/:/etc/shiny-server/
+       - shiny-apps:/srv/shiny-server/
+       - shiny-logs:/var/log/shiny-server/
+       - shiny-conf:/etc/shiny-server/
     restart: always
+
+volumes:
+  shiny-apps:
+    name: shiny-apps
+    driver_opts:
+      type: none
+      device: /home/pi/shiny-server/apps/
+      o: bind
+  shiny-logs:
+    name: shiny-logs
+    driver_opts:
+      type: none
+      device: /home/pi/shiny-server/logs/
+      o: bind
+  shiny-conf:
+    name: shiny-conf
+    driver_opts:
+      type: none
+      device: /home/pi/shiny-server/conf/
+      o: bind
 ```
 
 # Dockerhub
