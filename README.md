@@ -1,10 +1,20 @@
 # rpi-shiny-server-docker
 This is a standalone docker container image which builds shiny-server for arm on debian buster. Tested on a raspberry pi 4b. Be aware that this is a 4,5GB behemoth which takes 3 to 4 hours to build! The image uses a multi-stage build, which will generate a 1GB functional shiny-server image with all (afaik) required packages to build other R-packages and a 4.5GB builder image, which you can remove afterwards.
 
-In order to have it running on your Pi follow the instructions below:
-* Install docker (Optional: docker-compose) <br/>
-
-* Build the container
+In order to have it running on your Pi follow the instructions below: <br/>
+Install docker (Optional: docker-compose)
+```
+curl -sSL https://get.docker.com | sh
+sudo usermod -aG docker pi
+docker run hello-world
+```
+Optional: install docker-compose
+```
+sudo apt-get install libffi-dev libssl-dev -y
+sudo apt-get install python3 python3-pip -y
+sudo pip3 install --upgrade pip
+sudo pip3 install docker-compose
+```
 Install git
 ```
 sudo apt-get install git
@@ -21,19 +31,19 @@ mkdir shiny-server/logs
 mkdir shiny-server/conf
 mkdir shiny-server/apps
 ```
-Create the named volume
+Create the named volumes
 ```
 docker volume create --name shiny-apps --opt type=none --opt device=/home/pi/shiny-server/apps/ --opt o=bind
 docker volume create --name shiny-logs --opt type=none --opt device=/home/pi/shiny-server/logs/ --opt o=bind
 docker volume create --name shiny-conf --opt type=none --opt device=/home/pi/shiny-server/conf/ --opt o=bind
 ```
-* Run the container
+Run the container
 ```
 docker run -d -p 3838:3838 -v shiny-apps:/srv/shiny-server/ -v shiny-logs:/var/log/shiny-server/ -v shiny-conf:/etc/shiny-server/ --name rpi-shiny-server hvalev/rpi-shiny-server-docker
 ```
 
-* (Optional) You can also use the following docker-compose code:<br/>
-Note: Create the shiny-server folder structure on the host manuelly from the previous step before proceeding.
+Optional: Docker-compose variant<br/>
+Note: Create the shiny-server folder structure on the host manually from the previous step before proceeding.
 ```
 version: "3.8"
 services:
