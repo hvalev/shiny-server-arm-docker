@@ -1,5 +1,5 @@
 # rpi-shiny-server-docker
-This is a standalone docker container image which builds shiny-server for arm on debian buster. Tested on a raspberry pi 4b. Be aware that this is a 4,5GB behemoth which takes 3 to 4 hours to build!
+This is a standalone docker container image which builds shiny-server for arm on debian buster. Tested on a raspberry pi 4b. Be aware that this is a 4,5GB behemoth which takes 3 to 4 hours to build! The image uses a multi-stage build, which will generate a 1GB functional shiny-server image with all (afaik) required packages to build other R-packages and a 4.5GB builder image, which you can remove afterwards.
 
 In order to have it running on your Pi follow the instructions below:
 * Install docker (Optional: docker-compose) <br/>
@@ -27,7 +27,7 @@ services:
 ```
 
 # Dockerhub
-Precompiled image is available from on docker hub here https://hub.docker.com/repository/docker/hvalev/rpi-shiny-server-docker. Compressed image size - 1.7GB, uncompressed - 4.3GB
+Precompiled image is available from on docker hub here https://hub.docker.com/repository/docker/hvalev/rpi-shiny-server-docker. Compressed image size - 363MB, uncompressed - 1GB
 ```
 docker pull hvalev/rpi-shiny-server-docker
 ```
@@ -39,6 +39,7 @@ https://emeraldreverie.org/2019/11/17/self-hosting-shiny-notes-from-edinbr/ </br
 https://github.com/rstudio/shiny-server/wiki/Building-Shiny-Server-from-Source
 
 # Contents
+To optimize the build time, I have inserted the -j4 flags to various make and install commands to utilize multiple cores. As a result, the RAM memory consumption is increased and goes slightly over 1GB at times. Be mindful of that and remove those flags, should you try to compile the image on devices with less than 1GB ram or allocate additional swap memory beforehand.
 
 ## hello/
 The dockerfile preloads the hello-world shiny app to test if everything is working post install.
@@ -64,8 +65,8 @@ WORKDIR /usr/local/src/R-4.0.0
 #Optional: include blas and lapack
 #RUN ./configure --enable-R-shlib --with-blas --with-lapack
 RUN ./configure --enable-R-shlib
-RUN make
-RUN make install
+RUN make -j4
+RUN make -j4 install
 WORKDIR /usr/local/src/
 RUN rm -rf R-4.0.0*
 ```
@@ -86,10 +87,14 @@ RUN wget https://cmake.org/files/v3.17/cmake-3.17.2.tar.gz
 RUN tar xzf cmake-3.17.2.tar.gz
 WORKDIR /usr/local/src/cmake-3.17.2
 RUN ./configure
-RUN make
-RUN make install
+RUN make -j4
+RUN make -j4 install
 WORKDIR /usr/local/src/
 RUN rm -rf cmake-3.17.2*
 ```
-You can compile the most recent version of cmake 3.17.2 at the time of this writing. Alternatively you can also revert to cmake 3.17.0 without needing to install libssl-dev or avoid compiling cmake altogether by using an older precompiled binary as follows apt-get install cmake. The last option is untested.
+You can compile the most recent version of cmake (3.17.2 at the time of this writing). Alternatively you can also use cmake 3.17.0 without needing to install libssl-dev or avoid compiling cmake altogether by using an older precompiled binary as follows 
+```
+apt-get install cmake
+```
+The last option is untested.
 
