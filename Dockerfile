@@ -52,7 +52,6 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN git clone https://github.com/rstudio/shiny-server.git
 RUN mkdir shiny-server/tmp
 COPY binding.gyp /shiny-server/tmp/binding.gyp
-#RUN sed -i '8s/.*/NODE_SHA256=a865e69914c568fcb28be7a1bf970236725a06a8fc66530799300181d2584a49/' shiny-server/external/node/install-node.sh
 RUN sed -i '8s/.*/NODE_SHA256=8fdf1751c985c4e8048b23bbe9e36aa0cad0011c755427694ea0fda9efad6d97/' shiny-server/external/node/install-node.sh
 RUN sed -i 's/linux-x64.tar.xz/linux-armv7l.tar.xz/' /shiny-server/external/node/install-node.sh
 RUN sed -i 's/https:\/\/github.com\/jcheng5\/node-centos6\/releases\/download\//https:\/\/nodejs.org\/dist\//' /shiny-server/external/node/install-node.sh
@@ -106,8 +105,5 @@ RUN chmod -R 777 /srv/shiny-server
 
 RUN apt-get update -y
 RUN apt-get install -y gfortran libreadline6-dev libcurl4-openssl-dev libcairo2-dev xvfb libx11-dev libxt-dev libpng-dev libjpeg-dev libbz2-dev libzstd-dev liblzma-dev libatomic1 libgomp1 libpcre2-8-0 g++ make
-
-#RUN apt-get install libatomic1 libgomp1 
-#RUN apt-get install nano -y
 
 ENTRYPOINT ["/etc/shiny-server/init.sh"]
