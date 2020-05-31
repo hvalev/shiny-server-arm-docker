@@ -98,3 +98,9 @@ apt-get install cmake
 ```
 The last option is untested.
 
+### Shiny-Server
+Since we are pulling the shiny-server source from a live repository, it's likely that the node.js version will change. In order to for the build to work, we need to make sure that we are giving the right hash value. Currently the node.js version is v12.16.3. You will see the new version number in the build output and you can simply substitute from here https://nodejs.org/dist/vX.X.X/, where you need to update the NODE_SHA256 as seen below
+```
+RUN sed -i '8s/.*/NODE_SHA256=8fdf1751c985c4e8048b23bbe9e36aa0cad0011c755427694ea0fda9efad6d97/' shiny-server/external/node/install-node.sh
+```
+with the value for node-vX.X.X-linux-armv7l.tar.xz in SHASUMS256.txt.
