@@ -4,13 +4,36 @@ This is a standalone docker container image which builds shiny-server for arm on
 In order to have it running on your Pi follow the instructions below:
 * Install docker (Optional: docker-compose) <br/>
 
-* Build & run the container
+* Build the container
+Install git
 ```
-docker build https://github.com/hvalev/rpi-shiny-server-docker --tag rpi-shiny-server
-docker run -d -p 3838:3838 --name rpi-shiny-server rpi-shiny-server
+sudo apt-get install git
 ```
+Build the container
+```
+docker build https://github.com/hvalev/rpi-shiny-server-docker.git --tag rpi-shiny-server-docker
+```
+Create the necessary folders for binding docker-container folders to the host os
+```
+cd ~
+mkdir shiny-server
+mkdir shiny-server/logs
+mkdir shiny-server/conf
+mkdir shiny-server/apps
+```
+Create the named volume
+```
+docker volume create --name shiny-apps --opt type=none --opt device=/home/pi/shiny-server/apps/ --opt o=bind
+docker volume create --name shiny-logs --opt type=none --opt device=/home/pi/shiny-server/logs/ --opt o=bind
+docker volume create --name shiny-conf --opt type=none --opt device=/home/pi/shiny-server/conf/ --opt o=bind
+```
+* Run the container
+```
+docker run -d -p 3838:3838 -v shiny-apps:/srv/shiny-server/ -v shiny-logs:/var/log/shiny-server/ -v shiny-conf:/etc/shiny-server/ --name rpi-shiny-server hvalev/rpi-shiny-server-docker
+```
+
 * (Optional) You can also use the following docker-compose code:<br/>
-Note: Adjust your paths accordingly
+Note: Create the shiny-server folder structure on the host manuelly from the previous step before proceeding.
 ```
 version: "3.8"
 services:
