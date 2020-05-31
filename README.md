@@ -92,7 +92,7 @@ RUN make -j4 install
 WORKDIR /usr/local/src/
 RUN rm -rf cmake-3.17.2*
 ```
-You can compile the most recent version of cmake (3.17.2 at the time of this writing). Alternatively you can also use cmake 3.17.0 without needing to install libssl-dev or avoid compiling cmake altogether by using an older precompiled binary as follows 
+You can compile the most recent version of cmake (3.17.2 at the time of this writing). Alternatively you can also use cmake 3.17.0 without needing to install libssl-dev or avoid compiling cmake altogether and use a precompiled binary by substituting the above block with the following command. 
 ```
 apt-get install cmake
 ```
