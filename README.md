@@ -49,7 +49,7 @@ version: "3.8"
 services:
   rpi-shiny-server:
     image: hvalev/rpi-shiny-server-docker
-    container_name: rpi-shiny-server
+    container_name: rpi-shiny-server-docker
     ports:
       - 3838:3838
     volumes:
