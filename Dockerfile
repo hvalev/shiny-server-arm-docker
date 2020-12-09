@@ -8,41 +8,26 @@ RUN apt-get install -y gfortran libreadline6-dev libx11-dev libxt-dev \
                                texinfo texlive texlive-fonts-extra \
                                screen wget libpcre2-dev \
 							   git apt-utils sed \
-							   make g++ \
+							   make cmake g++ \
 							   default-jdk
 
 #Install R
 WORKDIR /usr/local/src
-RUN wget https://cran.rstudio.com/src/base/R-4/R-4.0.0.tar.gz
-RUN tar zxvf R-4.0.0.tar.gz
-WORKDIR /usr/local/src/R-4.0.0
+RUN wget https://cran.rstudio.com/src/base/R-4/R-4.0.3.tar.gz
+RUN tar zxvf R-4.0.3.tar.gz
+WORKDIR /usr/local/src/R-4.0.3
 #Optional: include blas and lapack
 #RUN ./configure --enable-R-shlib --with-blas --with-lapack
 RUN ./configure --enable-R-shlib
 RUN make -j4
 RUN make -j4 install
 WORKDIR /usr/local/src/
-RUN rm -rf R-4.0.0*
+RUN rm -rf R-4.0.3*
 
 WORKDIR /
 
 #Install R libs
 RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/')"
-
-#Install cmake
-#Info: libssl-dev is required to compile cmake 3.17.2, for 3.17.0 it's not needed
-WORKDIR /usr/local/src
-RUN apt-get install libssl-dev -y
-RUN wget https://cmake.org/files/v3.17/cmake-3.17.2.tar.gz
-RUN tar xzf cmake-3.17.2.tar.gz
-WORKDIR /usr/local/src/cmake-3.17.2
-RUN ./configure
-RUN make -j4
-RUN make -j4 install
-WORKDIR /usr/local/src/
-RUN rm -rf cmake-3.17.2*
-
-WORKDIR /
 
 #Set python3 as the default python
 RUN rm /usr/bin/python
@@ -52,7 +37,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN git clone https://github.com/rstudio/shiny-server.git
 RUN mkdir shiny-server/tmp
 COPY binding.gyp /shiny-server/tmp/binding.gyp
-RUN sed -i '8s/.*/NODE_SHA256=8fdf1751c985c4e8048b23bbe9e36aa0cad0011c755427694ea0fda9efad6d97/' shiny-server/external/node/install-node.sh
+RUN sed -i '8s/.*/NODE_SHA256=abef7d431d6d0e067fe5797d4fe44039a5577f01ed9e40d7a3496cbb22502f55/' shiny-server/external/node/install-node.sh
 RUN sed -i 's/linux-x64.tar.xz/linux-armv7l.tar.xz/' /shiny-server/external/node/install-node.sh
 RUN sed -i 's/https:\/\/github.com\/jcheng5\/node-centos6\/releases\/download\//https:\/\/nodejs.org\/dist\//' /shiny-server/external/node/install-node.sh
 WORKDIR /shiny-server/tmp/
@@ -104,6 +89,6 @@ RUN chmod -R 777 /var/lib/shiny-server
 RUN chmod -R 777 /srv/shiny-server
 
 RUN apt-get update -y
-RUN apt-get install -y gfortran libreadline6-dev libcurl4-openssl-dev libcairo2-dev xvfb libx11-dev libxt-dev libpng-dev libjpeg-dev libbz2-dev libzstd-dev liblzma-dev libatomic1 libgomp1 libpcre2-8-0 g++ make
+RUN apt-get install -y gfortran libreadline6-dev libcurl4-openssl-dev libcairo2-dev xvfb libx11-dev libxt-dev libpng-dev libjpeg-dev libbz2-dev libzstd-dev liblzma-dev libatomic1 libgomp1 libpcre2-8-0 libssl-dev libxml2-dev g++ make
 
 ENTRYPOINT ["/etc/shiny-server/init.sh"]

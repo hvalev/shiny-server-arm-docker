@@ -1,5 +1,5 @@
-# rpi-shiny-server-docker
-This is a standalone docker container image which builds shiny-server for arm on debian buster. Tested on a raspberry pi 4b. Be aware that this is a 4,5GB behemoth which takes 3 to 4 hours to build! The image uses a multi-stage build, which will generate a 1GB functional shiny-server image with all (afaik) required packages to build other R-packages and a 4.5GB builder image, which you can remove afterwards.
+# Shiny Server on Docker for ARM
+This is a standalone docker container image which builds shiny-server for arm on debian buster. Tested on a raspberry pi 4b. Be aware that this is a 4,5GB behemoth which takes a few hours to build! The image uses a multi-stage build, which will generate a 1GB functional shiny-server image with all (afaik) necessary libraries to build most R-packages and a 4.5GB builder image, which you can remove afterwards.
 
 In order to have it running on your Pi follow the instructions below: <br/>
 Install docker (Optional: docker-compose)
@@ -79,81 +79,54 @@ volumes:
       o: bind
 ```
 
-# Dockerhub
-Precompiled image is available from on docker hub here https://hub.docker.com/repository/docker/hvalev/rpi-shiny-server-docker. Compressed image size - 363MB, uncompressed - 1GB
-```
-docker pull hvalev/rpi-shiny-server-docker
-```
+### Dockerhub
+A Docker image is available here https://hub.docker.com/repository/docker/hvalev/rpi-shiny-server-docker. Compressed image size - 363MB, uncompressed - 1GB.
 
-# Credit
+### Credit
 The following resources were very helpful </br>
 https://community.rstudio.com/t/setting-up-your-own-shiny-server-rstudio-server-on-a-raspberry-pi-3b/18982 </br>
 https://emeraldreverie.org/2019/11/17/self-hosting-shiny-notes-from-edinbr/ </br>
-https://github.com/rstudio/shiny-server/wiki/Building-Shiny-Server-from-Source
+https://github.com/rstudio/shiny-server/wiki/Building-Shiny-Server-from-Source </br>
+https://www.brodrigues.co/blog/2020-09-20-shiny_raspberry/ for indicating a few libraries to be included in the build which are required for some packages.
 
-# Contents
-To optimize the build time, I have inserted the -j4 flags to various make and install commands to utilize multiple cores. As a result, the RAM memory consumption is increased and goes slightly over 1GB at times. Be mindful of that and remove those flags, should you try to compile the image on devices with less than 1GB ram or allocate additional swap memory beforehand.
+# How to use
 
-## hello/
+### hello/
 The dockerfile preloads the hello-world shiny app to test if everything is working post install.
 
-## shiny-server.conf
+### shiny-server.conf
 Sample configuration file for shiny-server. The hello app is already configured there.
 
-## init.sh
-Will be ran only the first time the container is started. It creates an init_done file when completed. If you need to make any changes to the installed R libraries (or execute other commands) between restarts, simply delete the init_done file and indicate which libraries need to be installed in the file as shown below
+### init.sh
+Will be executed once when the container is first started. It generates an init_done file when completed. If you need to make any changes to the installed R libraries (or execute other commands) between restarts, simply delete the init_done file and append to the init.sh the libraries you wish to add as shown below.
 ```
-R -e "install.packages(c('rcicr','shinyjs','filelock'), repos='http://cran.rstudio.com/')"
+R -e "install.packages(c('shinyjs','filelock'), repos='http://cran.rstudio.com/')"
 ```
 
-## Dockerfile
-Here are some excerpts from the Dockerfile with some explanation on changes you can make.
+# Build it yourself
+Read below if you'd like to make some modifications to the base image or compile it yourself.
 
-### R
+### RAM usage
+To optimize build time, I have used the -j4 flags to utilize multiple cores in various make and install commands. As a result RAM consumption is increased and goes slightly over 1GB at times. Should you compile the image on devices with less RAM, make sure you allocate some swap memory beforehand. </br>
+
+### Blas and Lapack support
+To enable blas and lapack support, switch the comment in the following ./configure statements.
 ```
-WORKDIR /usr/local/src
-RUN wget https://cran.rstudio.com/src/base/R-4/R-4.0.0.tar.gz
-RUN tar zxvf R-4.0.0.tar.gz
-WORKDIR /usr/local/src/R-4.0.0
 #Optional: include blas and lapack
 #RUN ./configure --enable-R-shlib --with-blas --with-lapack
 RUN ./configure --enable-R-shlib
-RUN make -j4
-RUN make -j4 install
-WORKDIR /usr/local/src/
-RUN rm -rf R-4.0.0*
 ```
-When installing R from source, you can compile it with blas and lapack support by switching the comment on the ./configure statements
 
-### R libs
+### Default R libraries
+Although you can install R libraries post-install, you could also bake those in the image by adding them to the run statement below in the Dockerfile.
 ```
 RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/')"
 ```
-Cairo is needed for the hello-world preloaded app. If it's missing the histogram won't be loaded
+Cairo is needed for the hello-world preloaded app. If it's missing the histogram won't be loaded.
 
-### Cmake
-```
-#Info: libssl-dev is required to compile cmake 3.17.2, for 3.17.0 it's not needed
-WORKDIR /usr/local/src
-RUN apt-get install libssl-dev -y
-RUN wget https://cmake.org/files/v3.17/cmake-3.17.2.tar.gz
-RUN tar xzf cmake-3.17.2.tar.gz
-WORKDIR /usr/local/src/cmake-3.17.2
-RUN ./configure
-RUN make -j4
-RUN make -j4 install
-WORKDIR /usr/local/src/
-RUN rm -rf cmake-3.17.2*
-```
-You can compile the most recent version of cmake (3.17.2 at the time of this writing). Alternatively you can also use cmake 3.17.0 without needing to install libssl-dev or avoid compiling cmake altogether and use a precompiled binary by substituting the above block with the following command. 
-```
-apt-get install cmake
-```
-The last option is untested.
-
-### Shiny-Server
-Since we are pulling the shiny-server source from a live repository, it's likely that the node.js version will change. In order to for the build to work, we need to make sure that we are giving the right hash value. Currently the node.js version is v12.16.3. You will see the new version number in the build output and you can simply substitute from here https://nodejs.org/dist/vX.X.X/, where you need to update the NODE_SHA256 as seen below
+### Node.js
+The shiny server install script is pulled from a live repository. As a consequence, the node.js version might change. In order for the build to work, you need to identify in the console log the node.js version and modify the following statement with the correct hash.
 ```
 RUN sed -i '8s/.*/NODE_SHA256=8fdf1751c985c4e8048b23bbe9e36aa0cad0011c755427694ea0fda9efad6d97/' shiny-server/external/node/install-node.sh
 ```
-with the value for node-vX.X.X-linux-armv7l.tar.xz in SHASUMS256.txt.
+The hash value you can find in https://nodejs.org/dist/vX.X.X/. The value you're looking for will be in SHASUMS256.txt under node-vX.X.X-linux-armv7l.tar.xz.

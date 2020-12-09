@@ -37,3 +37,46 @@ jobs:
            DOCKERHUB_USERNAME: ${{ secrets.DockerHubUname }}
            DOCKERHUB_PASSWORD: ${{ secrets.DockerHubPwd }}
            DOCKERHUB_REPOSITORY: hvalev/rpi-shiny-server      
+
+
+name: ci
+
+on:
+  push:
+
+jobs:
+  buildx:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DockerHubUname }}
+          password: ${{ secrets.DockerHubPwd }} 
+      -
+        name: Run Buildx
+        run: |
+          docker buildx build --push \
+          --tag hvalev/onedrive-docker-arm64:latest \
+          --platform linux/arm/v7 .
+      - 
+        name: Docker Hub Description
+        uses: peter-evans/dockerhub-description@v2
+        env:
+           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUBUNAME }}
+           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUBTOKEN }}
+           DOCKERHUB_REPOSITORY: hvalev/rpi-shiny-server   
