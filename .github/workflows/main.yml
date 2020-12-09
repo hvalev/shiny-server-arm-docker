@@ -30,12 +30,12 @@ jobs:
         name: Run Buildx
         run: |
           docker buildx build --push \
-          --tag hvalev/onedrive-docker-arm64:latest \
+          --tag hvalev/rpi-shiny-server:latest \
           --platform linux/arm/v7 .
       - 
         name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
         env:
            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUBUNAME }}
-           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUBTOKEN }}
+           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUBPWD }}
            DOCKERHUB_REPOSITORY: hvalev/rpi-shiny-server   
