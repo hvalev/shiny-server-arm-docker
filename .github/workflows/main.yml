@@ -30,7 +30,7 @@ jobs:
         name: Run Buildx
         run: |
           docker buildx build --push \
-          --tag hvalev/rpi-shiny-server:latest \
+          --tag hvalev/shiny-server-arm:latest \
           --platform linux/arm/v7 .
       - 
         name: Docker Hub Description
@@ -38,4 +38,4 @@ jobs:
         env:
            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUBUNAME }}
            DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUBPWD }}
-           DOCKERHUB_REPOSITORY: hvalev/rpi-shiny-server   
+           DOCKERHUB_REPOSITORY: hvalev/shiny-server-arm

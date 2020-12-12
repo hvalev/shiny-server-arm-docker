@@ -21,7 +21,7 @@ sudo apt-get install git
 ```
 Build the container
 ```
-docker build https://github.com/hvalev/rpi-shiny-server-docker.git --tag rpi-shiny-server-docker
+docker build https://github.com/hvalev/shiny-server-arm-docker.git --tag shiny-server-arm
 ```
 Create the necessary folders for binding docker-container folders to the host os
 ```
@@ -39,7 +39,7 @@ docker volume create --name shiny-conf --opt type=none --opt device=/home/pi/shi
 ```
 Run the container
 ```
-docker run -d -p 3838:3838 -v shiny-apps:/srv/shiny-server/ -v shiny-logs:/var/log/shiny-server/ -v shiny-conf:/etc/shiny-server/ --name rpi-shiny-server hvalev/rpi-shiny-server-docker
+docker run -d -p 3838:3838 -v shiny-apps:/srv/shiny-server/ -v shiny-logs:/var/log/shiny-server/ -v shiny-conf:/etc/shiny-server/ --name rpi-shiny-server hvalev/shiny-server-arm
 ```
 
 Optional: Docker-compose variant<br/>
@@ -48,8 +48,8 @@ Note: Create the shiny-server folder structure on the host manually from the pre
 version: "3.8"
 services:
   rpi-shiny-server:
-    image: hvalev/rpi-shiny-server-docker
-    container_name: rpi-shiny-server-docker
+    image: hvalev/shiny-server-arm
+    container_name: shiny-server-arm
     ports:
       - 3838:3838
     volumes:
@@ -80,7 +80,7 @@ volumes:
 ```
 
 ### Dockerhub
-A Docker image is available here https://hub.docker.com/repository/docker/hvalev/rpi-shiny-server-docker. Compressed image size - 363MB, uncompressed - 1GB.
+A Docker image is available here https://hub.docker.com/r/hvalev/shiny-server-arm. Compressed image size ~ 400MB; uncompressed - 1GB.
 
 ### Credit
 The following resources were very helpful </br>
