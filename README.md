@@ -5,7 +5,7 @@
 ![Docker Stars](https://img.shields.io/docker/stars/hvalev/shiny-server-arm)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/hvalev/shiny-server-arm)
 
-Docker image which builds shiny server on debian-buster for ARM architectures (such as raspberry pi devices). Generates both armv7 and arm64 images and should be future-proof with new releases and versions of shiny-server.
+Docker image which builds shiny server on debian-buster for ARM architectures (such as raspberry pi devices). Generates both armv7 and arm64 images and should be future-proof with new releases of shiny-server and versions of node.js.
 
 ## How to run it
 Create the shiny-server folders which the container will use:
@@ -88,7 +88,7 @@ To speed-up building, I have used -j4 flags when applicable to utilize multiple 
 
 ### Blas and Lapack support
 Since this is an automated build, Blas and Lapack support have been included in the build.
-If you wish to compile R without them, remove the ```--with-blas --with-lapack``` from the respective ./configure statement in the Dockerfile: ```./configure --enable-R-shlib --with-blas --with-lapack```
+If you wish to compile R without them, remove the ```--with-blas --with-lapack``` from the following statement in the Dockerfile: ```./configure --enable-R-shlib --with-blas --with-lapack```
 
 ### Default R libraries
 Although you can install R libraries post-install, you could also bake those in the image by adding them to the following run statement in the Dockerfile:
@@ -96,12 +96,10 @@ Although you can install R libraries post-install, you could also bake those in 
 Cairo is needed for the hello-world preloaded app. If it's missing the histogram won't be loaded.
 
 ### Node.js
-~~The shiny server install script is pulled from a live repository. As a consequence, the node.js version might change. In order for the build to work, you need to identify in the console log the node.js version and modify the following statement with the correct hash.
-```
-RUN sed -i '8s/.*/NODE_SHA256=8fdf1751c985c4e8048b23bbe9e36aa0cad0011c755427694ea0fda9efad6d97/' shiny-server/external/node/install-node.sh
-```
-The hash value you can find in https://nodejs.org/dist/vX.X.X/. The value you're looking for will be in SHASUMS256.txt under node-vX.X.X-linux-armv7l.tar.xz.~~
-I have written a small [script](https://github.com/hvalev/shiny-server-arm-docker/blob/master/determine_arch.sh), which automagically determines the architecture it's runnig on, fetches the appropriate node.js checksum and replaces it in the install-node.sh file. It should be future proof as the reference node.js version is taken from the cloned shiny-server repository itself.
+~~The shiny server install script is pulled from a live repository. As a consequence, the node.js version might change. In order for the build to work, you need to identify in the console log the node.js version and modify the following statement with the correct hash.~~
+~~`RUN sed -i '8s/.*/NODE_SHA256=8fdf1751c985c4e8048b23bbe9e36aa0cad0011c755427694ea0fda9efad6d97/' shiny-server/external/node/install-node.sh`~~
+~~The hash value you can find in https://nodejs.org/dist/vX.X.X/. The value you're looking for will be in SHASUMS256.txt under node-vX.X.X-linux-armv7l.tar.xz.~~
+I have written the [determine_arch.sh](https://github.com/hvalev/shiny-server-arm-docker/blob/master/determine_arch.sh) script, which automagically determines the architecture it's runnig on, fetches the appropriate node.js checksum and replaces it in the install-node.sh file. It should be future proof as the reference node.js version is taken from the cloned shiny-server repository itself.
 
 ## Acknowledgements
 The following resources were very helpful in putting this together:
