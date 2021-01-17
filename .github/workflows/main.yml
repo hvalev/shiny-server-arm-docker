@@ -1,7 +1,13 @@
 name: ci
-
 on:
   push:
+    tags:
+      - 'v*'
+    paths-ignore:
+    - 'README.md'
+
+env:
+  BUILD_VERSION: "0.1"
 
 jobs:
   buildx:
@@ -31,7 +37,8 @@ jobs:
         run: |
           docker buildx build --push \
           --tag hvalev/shiny-server-arm:latest \
-          --platform linux/arm/v7 .
+          --tag hvalev/shiny-server-arm:BUILD_VERSION \
+          --platform linux/arm/v7,linux/arm64 .
       - 
         name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
