@@ -71,8 +71,11 @@ The following sections will explain how you can install libraries and import you
 ### Installing libraries
 Libraries can be installed by modifying the ```init.sh``` file. It will run the first time the container is started and will generate an ```init_done``` file. ```init.sh``` contains and will execute the ```R -e "install.packages(c('lib1','lib2',...))``` command. Simply add the libraries you wish installed there. To add additional libraries in subsequent runs, delete the ```init_done``` file and add them to ```init.sh``` as before. Please note that installed libraries will persist between restarts as long as the container image is not removed or recreated. **Make sure you use a versioned container (such as hvalev/shiny-server-arm:0.1), rather than the :latest tag or avoid using updater containers such as ouroboros or watchtower as an update might remove your installed applications and configurations!**
 
-### Adding custom configuration for your apps
-The file ```shiny-server.conf``` stores the configuration for shiny-server as well as your own applications. Modify it as needed. The docker image comes with the hello-world shiny-server app preloaded. It is accessible at ```http://localhost:3838/apps/hello```. Its configuration and source-code under ```shiny-server/conf``` and ```shiny-server/apps``` respectively and can be used as a staging ground for building or hosting your own apps.
+### Adding and configuring apps
+You can add your own apps by navigating to ```shiny-server/apps``` and putting your app there. The docker image comes with the hello-world shiny-server app preloaded. Once the container is running, it will be accessible at ```http://localhost:3838/apps/hello```. Its configuration file can be found at ```shiny-server/conf/shiny-server.conf```. You can use the hello-world project as a staging ground for building or hosting new apps.
+
+### Configuring shiny-server
+The file ```shiny-server/conf/shiny-server.conf``` also stores the configuration for shiny-server. The default settings should be sufficient, however you can also modify it according to your needs.
 
 ## Build it yourself
 The Dockerfile implements a multi-stage build and will produce a functional 1GB shiny-server image equipped with all necessary libraries to build and install most R-packages. Additionally, it will leave a 4.5GB builder image behind post-build, which you can remove. Be aware that this will take at least 2 hours to build even on an SSD.
