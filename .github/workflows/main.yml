@@ -6,9 +6,6 @@ on:
     paths-ignore:
     - 'README.md'
 
-env:
-  BUILD_VERSION: "0.1"
-
 jobs:
   buildx:
     runs-on: ubuntu-latest
@@ -16,6 +13,10 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v2
+      - 
+        name: Get Version
+        id: get_version
+        uses: battila7/get-version-action@v2.2.1
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -37,7 +38,7 @@ jobs:
         run: |
           docker buildx build --push \
           --tag hvalev/shiny-server-arm:latest \
-          --tag hvalev/shiny-server-arm:${BUILD_VERSION} \
+          --tag hvalev/shiny-server-arm:${{ steps.get_version.outputs.version-without-v }} \
           --platform linux/arm/v7,linux/arm64 .
       - 
         name: Docker Hub Description

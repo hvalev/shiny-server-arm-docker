@@ -1,11 +1,10 @@
 # Shiny Server on Docker for ARM
-
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/hvalev/shiny-server-arm-docker/ci)
+![build](https://github.com/hvalev/shiny-server-arm-docker/workflows/ci/badge.svg)
 ![Docker Pulls](https://img.shields.io/docker/pulls/hvalev/shiny-server-arm)
 ![Docker Stars](https://img.shields.io/docker/stars/hvalev/shiny-server-arm)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/hvalev/shiny-server-arm)
 
-Docker image which builds shiny server on debian-buster for ARM architectures (such as raspberry pi devices). Generates both armv7 and arm64 images and should be future-proof with new releases of shiny-server and versions of node.js.
+Docker image which builds Shiny-Server for ARM architectures (such as raspberry pi). Generates both an armv7 and arm64 image and is future-proof with new versions of node.js for Shiny-Server. The latest image is build with R v4.0.3 and Shiny-Server v1.5.16.958.
 
 ## How to run it
 Create the shiny-server folders which the container will use:
@@ -23,9 +22,9 @@ docker volume create --name shiny-logs --opt type=none --opt device=/home/pi/shi
 docker volume create --name shiny-conf --opt type=none --opt device=/home/pi/shiny-server/conf/ --opt o=bind
 ```
 Run the container:
-```docker run -d -p 3838:3838 -v shiny-apps:/srv/shiny-server/ -v shiny-logs:/var/log/shiny-server/ -v shiny-conf:/etc/shiny-server/ --name rpi-shiny-server hvalev/shiny-server-arm:0.1```
+```docker run -d -p 3838:3838 -v shiny-apps:/srv/shiny-server/ -v shiny-logs:/var/log/shiny-server/ -v shiny-conf:/etc/shiny-server/ --name shiny-server-arm hvalev/shiny-server-arm:0.2.0```
 and navigate to:
-```http://localhost:3838/apps/```
+```http://host-ip:3838/```
 
 ## How to run it with docker-compose
 You need to create the folders from the previous section using the first command. It is not necessary to bind them. Use the following docker-compose.yml file:
@@ -33,7 +32,7 @@ You need to create the folders from the previous section using the first command
 version: "3.8"
 services:
   rpi-shiny-server:
-    image: hvalev/shiny-server-arm:0.1
+    image: hvalev/shiny-server-arm:0.2.0
     container_name: shiny-server-arm
     ports:
       - 3838:3838
@@ -63,16 +62,16 @@ volumes:
       device: ~/shiny-server/conf/
       o: bind
 ```
-Run: ```docker-compose up -d``` and navigate to: ```http://localhost:3838/apps/```
+Run: ```docker-compose up -d``` and navigate to: ```http://host-ip:3838/```
 
 ## How to use it (please read fully and carefully!)
-The following sections will explain how you can install libraries and import your own projects
+The following sections will explain how you can install libraries and import your own projects.
 
 ### Installing libraries
-Libraries can be installed by modifying the ```init.sh``` file. It will run the first time the container is started and will generate an ```init_done``` file. ```init.sh``` contains and will execute the ```R -e "install.packages(c('lib1','lib2',...))``` command. Simply add the libraries you wish installed there. To add additional libraries in subsequent runs, delete the ```init_done``` file and add them to ```init.sh``` as before. Please note that installed libraries will persist between restarts as long as the container image is not removed or recreated. **Make sure you use a versioned container (such as hvalev/shiny-server-arm:0.1), rather than the :latest tag or avoid using updater containers such as ouroboros or watchtower as an update might remove your installed applications and configurations!**
+Libraries can be installed by modifying the ```init.sh``` file. It contains and will execute the ```R -e "install.packages(c('lib1','lib2',...))``` command the first time the container is started. Simply add the libraries you wish installed there. In order to avoid installing the same libraries on each restart, the script generates an ```init_done``` file and will not run if the file is present on the system. To add additional libraries in subsequent runs, delete the ```init_done``` file and add the new libraries to ```init.sh``` as before. Please note that installed libraries will persist between restarts as long as the container image is not removed or recreated. **Make sure you use a versioned container (such as hvalev/shiny-server-arm:0.2.0), rather than the :latest tag or avoid using updater containers such as ouroboros or watchtower as an update might remove your installed applications and configurations!**
 
 ### Adding and configuring apps
-You can add your own apps by navigating to ```shiny-server/apps``` and putting your app there. The docker image comes with the hello-world shiny-server app preloaded. Once the container is running, it will be accessible at ```http://localhost:3838/apps/hello```. Its configuration file can be found at ```shiny-server/conf/shiny-server.conf```. You can use the hello-world project as a staging ground for building or hosting new apps.
+The docker image comes with the hello-world app preloaded. Once the container is running, it will be accessible at ```http://host-ip:3838/hello```. Its configuration file can be found at ```shiny-server/conf/shiny-server.conf```. You can use the hello-world project as a staging ground for building new apps. You can add your own apps by copying them over to the folder ```shiny-server/apps```. The application will then be available on ```http://host-ip:3838/yourappfolder```.
 
 ### Configuring shiny-server
 The file ```shiny-server/conf/shiny-server.conf``` also stores the configuration for shiny-server. The default settings should be sufficient, however you can also modify it according to your needs.

@@ -3,8 +3,10 @@
 ###########################
 FROM debian:buster-20210111 AS builder
 
-RUN apt-get update -y && \
-    apt-get install -y \
+ENV V_RStudio=R-4.0.3
+ENV V_ShinyServer=v1.5.16.958
+
+RUN apt-get update && apt-get install -y \
     gfortran libreadline6-dev libx11-dev libxt-dev \
     libpng-dev libjpeg-dev libcairo2-dev xvfb libbz2-dev \
     libzstd-dev liblzma-dev libcurl4-openssl-dev \
@@ -13,14 +15,14 @@ RUN apt-get update -y && \
 
 #Install R with blas and lapack support. Remove '--with-blas --with-lapack' to disable
 WORKDIR /usr/local/src
-RUN wget https://cran.rstudio.com/src/base/R-4/R-4.0.3.tar.gz && \
-    tar zxvf R-4.0.3.tar.gz && \
-    cd /usr/local/src/R-4.0.3 && \
+RUN wget https://cran.rstudio.com/src/base/R-4/${V_RStudio}.tar.gz && \
+    tar zxvf ${V_RStudio}.tar.gz && \
+    cd /usr/local/src/${V_RStudio} && \
     ./configure --enable-R-shlib --with-blas --with-lapack && \
     make -j4 && \
     make -j4 install && \
     cd /usr/local/src/ && \
-    rm -rf R-4.0.3*
+    rm -rf ${V_RStudio}*
 
 #Set python3 as the default python
 RUN rm /usr/bin/python && \
@@ -28,7 +30,7 @@ RUN rm /usr/bin/python && \
 
 #Install shiny-server with fix for arm architectures
 WORKDIR /
-RUN git clone https://github.com/rstudio/shiny-server.git && \
+RUN git clone --depth 1 --branch ${V_ShinyServer} https://github.com/rstudio/shiny-server.git && \
     mkdir shiny-server/tmp
 COPY binding.gyp /shiny-server/tmp/binding.gyp
 
@@ -84,15 +86,15 @@ COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
 COPY init.sh /etc/shiny-server/init.sh
 RUN chmod 777 /etc/shiny-server/init.sh
 
-RUN apt-get update -y && \
-    apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gfortran libreadline6-dev libcurl4-openssl-dev \
     libcairo2-dev xvfb libx11-dev libxt-dev libpng-dev \
     libjpeg-dev libbz2-dev libzstd-dev liblzma-dev libatomic1 \
-    libgomp1 libpcre2-8-0 libssl-dev libxml2-dev g++ make
+    libgomp1 libpcre2-8-0 libssl-dev libxml2-dev g++ make && \
+    rm -rf /var/lib/apt/lists/*
 
 #Preload hello world project
 COPY hello/* /srv/shiny-server/hello/
-RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/')"
+RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/', clean = TRUE)"
 
 ENTRYPOINT ["/etc/shiny-server/init.sh"]
