@@ -24,7 +24,7 @@ jobs:
         name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
       -
-        name: Build and push
+        name: Build only
         uses: docker/build-push-action@v2
         with:
           context: .
