@@ -4,7 +4,7 @@
 ![Docker Stars](https://img.shields.io/docker/stars/hvalev/shiny-server-arm)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/hvalev/shiny-server-arm)
 
-Docker image which builds Shiny-Server for ARM architectures (such as raspberry pi). Generates both an armv7 and arm64 image and is future-proof with new versions of node.js for Shiny-Server. The latest image is build with R v4.0.3 and Shiny-Server v1.5.16.958.
+Docker image which builds Shiny-Server for ARM architectures (such as raspberry pi). Generates both an armv7 and arm64 image and is future-proof with new versions of node.js for Shiny-Server. The latest image is build with R v4.0.3 and Shiny-Server v1.5.15.953.
 
 ## How to run it
 First we need to create the folder structure on the host, which will be used to host the shiny-server config, logs and applications.
