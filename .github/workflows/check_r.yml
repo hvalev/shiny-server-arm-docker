@@ -1,7 +1,7 @@
 name: Check R Version
 on:
   schedule:
-    - cron:  '0 * */1 * *'
+    - cron: '0 * */1 * *'
 jobs:
   updateR:
     runs-on: ubuntu-20.04
