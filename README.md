@@ -1,5 +1,6 @@
 # Shiny Server on Docker for ARM
 ![build](https://github.com/hvalev/shiny-server-arm-docker/workflows/build/badge.svg)
+![R%20version](https://img.shields.io/badge/R%20version-4.0.3-green)
 ![Docker Pulls](https://img.shields.io/docker/pulls/hvalev/shiny-server-arm)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/hvalev/shiny-server-arm)
 
