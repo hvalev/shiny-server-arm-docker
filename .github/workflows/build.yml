@@ -43,8 +43,8 @@ jobs:
           platforms: linux/arm/v7,linux/arm64,linux/amd64
           push: true
           tags: |
-            hvalev/shiny-server-arm:latest
             hvalev/shiny-server-arm:${{ steps.get_version.outputs.version }}
+            hvalev/shiny-server-arm:latest
       - 
         name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
