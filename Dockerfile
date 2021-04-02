@@ -3,7 +3,7 @@
 ###########################
 FROM debian:buster-20210208 AS builder
 
-ENV V_RStudio=R-4.0.4
+ENV V_RStudio=R-4.0.5
 ENV V_ShinyServer=v1.5.16.958
 
 RUN apt-get update && apt-get install -y \
