@@ -87,7 +87,7 @@ COPY init.sh /etc/shiny-server/init.sh
 RUN chmod 777 /etc/shiny-server/init.sh
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gfortran libreadline6-dev libcurl4-openssl-dev \
+    gfortran libreadline6-dev libcurl4-openssl-dev ca-certificates \
     libcairo2-dev xvfb libx11-dev libxt-dev libpng-dev \
     libjpeg-dev libbz2-dev libzstd-dev liblzma-dev libatomic1 \
     libgomp1 libpcre2-8-0 libssl-dev libxml2-dev g++ make && \
