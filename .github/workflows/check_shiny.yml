@@ -2,14 +2,13 @@ name: Check Shiny Version
 
 on:
   schedule:
-    - cron: '0 4 * * 5'
+    - cron: '0 4 * * 6'
 
 jobs:
   updateShiny:
     runs-on: ubuntu-20.04
     steps:
-      - 
-        name: Fetch Shiny Server Repo
+      - name: Fetch Shiny Server Repo
         uses: actions/checkout@v2
         with:
           repository: rstudio/shiny-server
@@ -19,30 +18,25 @@ jobs:
           git fetch --tags
           tag=$(git describe --tags `git rev-list --tags --max-count=1` | cut -b 2-)
           echo ::set-output name=release_tag::$tag
-      - 
-        name: Checkout 
+      - name: Checkout 
         uses: actions/checkout@v2
-      -
-        name: Get Latest R Release
+      - name: Get Latest R Release
         id: shiny-version-current
         run: |
           echo ::set-output name=current_tag::$(<Shiny-version.txt)
-      - 
-        name: Update Shiny Server
+      - name: Update Shiny Server
         if: steps.shiny-version-current.outputs.current_tag != steps.shiny-version-new.outputs.release_tag
         env:
           RELEASE_TAG: ${{ steps.shiny-version-new.outputs.release_tag }}
         run: |
           # Update current release
           echo ${{ steps.shiny-version-new.outputs.release_tag }} > Shiny-version.txt
-      - 
-        name: Update Readme.md & Dockerfile
+      - name: Update Readme.md & Dockerfile
         uses: jacobtomlinson/gha-find-replace@master
         with:
           find: ${{ steps.shiny-version-current.outputs.current_tag }}
           replace: ${{ steps.shiny-version-new.outputs.release_tag }}
-      - 
-        name: Create Pull Request
+      - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
           commit-message: Update Shiny Server to ${{ steps.shiny-version-new.outputs.release_tag }}

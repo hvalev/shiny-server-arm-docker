@@ -1,49 +1,40 @@
 name: build
-
 on:
   push:
-    tags:
-      - '*'
     paths-ignore:
-    - 'README.md'
+      - 'README.md'
+    tags:
+      - '**'
 
 jobs:
   buildx:
     runs-on: ubuntu-20.04
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v2
-      - 
-        name: Get Version
+      - name: Get Version
         id: get_version
         uses: battila7/get-version-action@v2.3.0
-      -
-        name: Set up QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
-      -
-        name: Cache Docker layers
+      - name: Cache Docker layers
         uses: actions/cache@v2.1.6
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      -
-        name: Available platforms
+      - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
-      -
-        name: Login to DockerHub
+      - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUBUNAME }}
           password: ${{ secrets.DOCKERHUBTOKEN }} 
-      -
-        name: Build and push
+      - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -55,13 +46,11 @@ jobs:
             hvalev/shiny-server-arm:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
-      - 
-        name: Move cache
+      - name: Move cache
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-      - 
-        name: Docker Hub Description
+      - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
         env:
            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUBUNAME }}

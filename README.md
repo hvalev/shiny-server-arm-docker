@@ -1,11 +1,11 @@
 # Shiny Server on Docker for ARM
-![build](https://github.com/hvalev/shiny-server-arm-docker/workflows/build/badge.svg)
+[![build](https://github.com/hvalev/shiny-server-arm-docker/actions/workflows/build.yml/badge.svg)](https://github.com/hvalev/shiny-server-arm-docker/actions/workflows/build.yml)
 ![R%20version](https://img.shields.io/badge/R%20version-4.1.1-green)
 ![Shiny%20version](https://img.shields.io/badge/Shiny%20version-1.5.16.958-green)
 ![Docker Pulls](https://img.shields.io/docker/pulls/hvalev/shiny-server-arm)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/hvalev/shiny-server-arm)
 
-Docker image hosting Shiny-Server for ARM (armv7/arm64) and AMD (amd64) architectures. The build features some fixes targeting ARM and is primarily intended to be deployed on SBCs such as raspberry pi.
+Docker image hosting Shiny-Server for ARM (armv7/arm64) and AMD (amd64) architectures. The build features some fixes targeting ARM and is primarily intended to be deployed on SBCs (Single Board Computers) such as raspberry pi.
 
 ## How to run it
 First we need to create the folder structure on the host, which will be used to host the shiny-server config, logs and applications.
@@ -50,7 +50,7 @@ Run: ```docker-compose up -d``` and navigate to: ```http://host-ip:3838/hello```
 The following sections will explain how you can install libraries and import your own projects.
 
 ### Installing libraries
-Libraries can be installed by modifying the ```init.sh``` file under ```~/shiny-server/conf```. It contains and will execute the ```R -e "install.packages(c('lib1','lib2',...))``` command the first time the container is started. Simply add the libraries you wish installed there. In order to avoid installing the same libraries on each restart, the script generates an ```init_done``` file and will not run if the file is present on the system. To add additional libraries in subsequent runs, delete the ```init_done``` file and add the new libraries to ```init.sh``` as before. Please note that installed libraries will persist between restarts as long as the container image is not removed or recreated. ~**Make sure you use a versioned container (such as hvalev/shiny-server-arm:0.2.0), rather than the :latest tag or avoid using updater containers such as ouroboros or watchtower as an update might remove your installed applications and configurations!**~
+Libraries can be installed by modifying the ```init.sh``` file under ```~/shiny-server/conf```. It contains and will execute the ```R -e "install.packages(c('lib1','lib2',...))``` command the first time the container is started. Simply add the libraries you wish installed there. In order to avoid installing the same libraries on each restart, the script generates an ```init_done``` file and will not run if the file is present on the system. To add additional libraries in subsequent runs, delete the ```init_done``` file and add the new libraries to ```init.sh``` as before. Please note that installed libraries will persist between restarts as long as the container image is not removed or recreated.
 
 ### Adding and configuring apps
 Apps can be added to the ```~/shiny-server/apps``` folder and will be loaded into shiny-server. If you followed the steps in so far, the hello-world app will be accessible under ```http://host-ip:3838/hello```. You can add your own apps by copying them over to the folder ```shiny-server/apps```, where it will be available under ```http://host-ip:3838/yourappfolder```. Be aware that each app will need to have its own configuration file under ```~/shiny-server/yourappfolder/.shiny_app.conf```. You can use the hello-world app as staging ground for building your new app. 
@@ -82,10 +82,7 @@ Although you can install R libraries post-install, you could also bake those in 
 Cairo is needed for the hello-world preloaded app. If it's missing the histogram won't be loaded.
 
 ### Node.js
-~~The shiny server install script is pulled from a live repository. As a consequence, the node.js version might change. In order for the build to work, you need to identify in the console log the node.js version and modify the following statement with the correct hash.~~
-~~`RUN sed -i '8s/.*/NODE_SHA256=8fdf1751c985c4e8048b23bbe9e36aa0cad0011c755427694ea0fda9efad6d97/' shiny-server/external/node/install-node.sh`~~
-~~The hash value you can find in https://nodejs.org/dist/vX.X.X/. The value you're looking for will be in SHASUMS256.txt under node-vX.X.X-linux-armv7l.tar.xz.~~
-I have written the [determine_arch.sh](https://github.com/hvalev/shiny-server-arm-docker/blob/master/determine_arch.sh) script, which automagically determines the architecture it's runnig on, fetches the appropriate node.js checksum and replaces it in the install-node.sh file. It should be future-proof as the reference node.js version is taken from the cloned shiny-server repository itself.
+I have written the [determine_arch.sh](https://github.com/hvalev/shiny-server-arm-docker/blob/master/determine_arch.sh) script, which automagically determines the architecture it's running on, fetches the appropriate node.js checksum and replaces it in the install-node.sh file. It should be future-proof as the reference node.js version is taken from the cloned shiny-server repository itself.
 
 ## Acknowledgements
 The following resources were very helpful in putting this together:

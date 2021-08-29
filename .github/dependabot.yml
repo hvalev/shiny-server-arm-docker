@@ -9,12 +9,12 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-      day: friday
+      day: saturday
     open-pull-requests-limit: 10
 
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
-      day: friday
+      day: saturday
     open-pull-requests-limit: 10
