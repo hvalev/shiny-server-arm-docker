@@ -24,7 +24,7 @@ cp -r ~/shiny-server-arm-docker/hello/ ~/shiny-server/apps/
 rm -rf ~/shiny-server-arm-docker/
 ```
 Run the container:
-```docker run -d -p 3838:3838 -v ~/shiny-server/apps:/srv/shiny-server/ -v ~/shiny-server/logs:/var/log/shiny-server/ -v ~/shiny-server/conf:/etc/shiny-server/ --name shiny-server-arm hvalev/shiny-server-arm:latest```
+```docker run -d -p 3838:3838 -v ~/shiny-server/apps:/srv/shiny-server/ -v ~/shiny-server/logs:/var/log/shiny-server/ -v ~/shiny-server/conf:/etc/shiny-server/ --name shiny-server hvalev/shiny-server-arm:latest```
 and navigate to:
 ```http://host-ip:3838/hello```
 
@@ -33,7 +33,7 @@ You need to create the folders and copy the configurations from the previous sec
 ```
 version: "3.8"
 services:
-  rpi-shiny-server:
+  shiny-server:
     image: hvalev/shiny-server-arm:latest
     container_name: shiny-server-arm
     ports:
