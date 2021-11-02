@@ -46,7 +46,7 @@ services:
 ```
 Run: ```docker-compose up -d``` and navigate to: ```http://host-ip:3838/hello```
 
-## How to use it (please read fully and carefully!)
+## How to use it
 The following sections will explain how you can install libraries and import your own projects.
 
 ### Installing libraries
