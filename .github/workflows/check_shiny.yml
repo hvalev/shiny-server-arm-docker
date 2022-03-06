@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Fetch Shiny Server Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: rstudio/shiny-server
       - name: Get Newest Shiny Server Tag
@@ -19,7 +19,7 @@ jobs:
           tag=$(git describe --tags `git rev-list --tags --max-count=1` | cut -b 2-)
           echo ::set-output name=release_tag::$tag
       - name: Checkout 
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Get Latest R Release
         id: shiny-version-current
         run: |
