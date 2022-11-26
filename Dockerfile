@@ -1,7 +1,7 @@
 ###########################
 # Builder image
 ###########################
-FROM debian:buster-20221024 AS builder
+FROM debian:buster-20221114 AS builder
 
 ENV V_RStudio=R-4.2.2
 ENV V_ShinyServer=v1.5.17.973
@@ -57,7 +57,7 @@ RUN PYTHON=`which python` && \
 ###########################
 # Production image
 ###########################
-FROM debian:buster-20221024
+FROM debian:buster-20221114
 #Copy artefacts from builder image
 COPY --from=builder /usr/local/bin/R /usr/local/bin/R
 COPY --from=builder /usr/local/lib/R /usr/local/lib/R
