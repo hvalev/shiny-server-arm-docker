@@ -4,7 +4,7 @@
 FROM debian:buster-20221205 AS builder
 
 ENV V_RStudio=R-4.2.2
-ENV V_ShinyServer=v1.5.17.973
+ENV V_ShinyServer=v1.5.20.1002
 
 RUN apt-get update && apt-get install -y \
     gfortran libreadline6-dev libx11-dev libxt-dev \
