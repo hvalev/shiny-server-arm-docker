@@ -47,6 +47,7 @@ RUN PYTHON=`which python` && \
     cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DPYTHON="$PYTHON" ../ && \
     make -j4 && \
     ../external/node/install-node.sh && \
+    PATH=$PATH:/shiny-server/ext/node/bin/ && \
     ../bin/node ../ext/node/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js configure && \
     ../bin/node ../ext/node/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js --python="$PYTHON" rebuild && \
     ../bin/npm --python="${PYTHON}" install --no-optional && \
