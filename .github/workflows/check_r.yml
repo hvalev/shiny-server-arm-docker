@@ -9,11 +9,13 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
+      - name: Install libs
+        run: sudo apt-get update && sudo apt-get install curl jq -y
       - name: Get Latest R Release
         id: r-version
         run: |
-          echo ::set-output name=release_tag::$(curl 'https://cran.rstudio.com/src/base/R-4/' | grep -oP 'href="R-\K[0-9]+\.[0-9]+\.[0-9]+' | sort -t. -rn -k1,1 -k2,2 -k3,3 | head -1)
-          echo ::set-output name=current_tag::$(<R-version.txt)
+          echo "release_tag=$(curl 'https://cran.rstudio.com/src/base/R-4/' | grep -oP 'href="R-\K[0-9]+\.[0-9]+\.[0-9]+' | sort -t. -rn -k1,1 -k2,2 -k3,3 | head -1)" >> $GITHUB_OUTPUT
+          echo "current_tag=$(<R-version.txt)" >> $GITHUB_OUTPUT
       - name: Update R-version.txt
         if: steps.r-version.outputs.current_tag != steps.r-version.outputs.release_tag
         env:
