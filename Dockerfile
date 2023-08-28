@@ -58,7 +58,7 @@ RUN PYTHON=`which python` && \
 ###########################
 # Production image
 ###########################
-FROM debian:buster-20230814
+FROM debian:buster-20230814 as shiny
 #Copy artefacts from builder image
 COPY --from=builder /usr/local/bin/R /usr/local/bin/R
 COPY --from=builder /usr/local/lib/R /usr/local/lib/R
@@ -99,3 +99,14 @@ COPY hello/* /srv/shiny-server/hello/
 RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/', clean = TRUE)"
 
 ENTRYPOINT ["/etc/shiny-server/init.sh"]
+
+###########################
+# Devtools Production image
+###########################
+FROM shiny AS shiny-with-devtools
+RUN apt-get update && \
+    apt-get install libzmq3-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev \
+    libpng-dev libtiff5-dev libjpeg-dev build-essential libcurl4-openssl-dev \
+    libxml2-dev libssl-dev libfontconfig1-dev -y
+	# installing devtools
+RUN	R -e "install.packages('devtools', repos='http://cran.rstudio.com/', type='source')"

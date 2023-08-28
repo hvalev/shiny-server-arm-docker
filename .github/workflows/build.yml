@@ -34,16 +34,30 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUBUNAME }}
           password: ${{ secrets.DOCKERHUBTOKEN }} 
-      - name: Build and push
+      - name: Build and push shiny
         uses: docker/build-push-action@v4
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
           platforms: linux/arm/v7,linux/arm64,linux/amd64
+          target: shiny
           push: true
           tags: |
             hvalev/shiny-server-arm:${{ steps.get_version.outputs.version }}
             hvalev/shiny-server-arm:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+      - name: Build and push shiny with devtools
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          builder: ${{ steps.buildx.outputs.name }}
+          platforms: linux/arm/v7,linux/arm64,linux/amd64
+          target: shiny-with-devtools
+          push: true
+          tags: |
+            hvalev/shiny-server-arm:devtools-${{ steps.get_version.outputs.version }}
+            hvalev/shiny-server-arm:devtools-latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
       - name: Move cache
