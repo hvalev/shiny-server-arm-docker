@@ -96,7 +96,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 #Preload hello world project
 COPY hello/* /srv/shiny-server/hello/
-RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/', clean = TRUE)"
+RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/', clean = TRUE, Ncpus = 2)"
 
 ENTRYPOINT ["/etc/shiny-server/init.sh"]
 
@@ -109,4 +109,4 @@ RUN apt-get update && \
     libpng-dev libtiff5-dev libjpeg-dev build-essential libcurl4-openssl-dev \
     libxml2-dev libssl-dev libfontconfig1-dev -y
 	# installing devtools
-RUN	R -e "install.packages('devtools', repos='http://cran.rstudio.com/', type='source')"
+RUN	R -e "install.packages('devtools', repos='http://cran.rstudio.com/', type='source', clean = TRUE, Ncpus = 2)"
