@@ -96,6 +96,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 #Preload hello world project
 COPY hello/* /srv/shiny-server/hello/
+#Prevent installation from hanging for multi-arch builds due to insufficient ram by preinstalling httpuv
+RUN R -e "install.packages(c('httpuv'), repos='http://cran.rstudio.com/', clean = TRUE, Ncpus = 1)"
 RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/', clean = TRUE, Ncpus = 2)"
 
 ENTRYPOINT ["/etc/shiny-server/init.sh"]
@@ -107,6 +109,6 @@ FROM shiny AS shiny-with-devtools
 RUN apt-get update && \
     apt-get install libzmq3-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev \
     libpng-dev libtiff5-dev libjpeg-dev build-essential libcurl4-openssl-dev \
-    libxml2-dev libssl-dev libfontconfig1-dev -y
+    libxml2-dev libssl-dev libfontconfig1-dev libgit2-dev -y
 	# installing devtools
 RUN	R -e "install.packages('devtools', repos='http://cran.rstudio.com/', type='source', clean = TRUE, Ncpus = 2)"
