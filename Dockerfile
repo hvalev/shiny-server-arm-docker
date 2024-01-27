@@ -4,7 +4,7 @@
 FROM debian:buster-20240110 AS builder
 
 ENV V_RStudio=R-4.3.2
-ENV V_ShinyServer=v1.5.20.1002
+ENV V_ShinyServer=v1.5.21.1012
 
 RUN apt-get update && apt-get install -y \
     gfortran \
