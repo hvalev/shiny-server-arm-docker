@@ -6,7 +6,7 @@ on:
 
 jobs:
   updateShiny:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Fetch Shiny Server Repo
         uses: actions/checkout@v4
