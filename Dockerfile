@@ -3,7 +3,7 @@
 ###########################
 FROM debian:buster-20240211 AS builder
 
-ENV V_RStudio=R-4.3.2
+ENV V_RStudio=R-4.3.3
 ENV V_ShinyServer=v1.5.21.1012
 
 RUN apt-get update && apt-get install -y \
@@ -31,7 +31,8 @@ RUN apt-get update && apt-get install -y \
     make \
     cmake \
     g++ \
-    default-jdk 
+    default-jdk && \
+    rm -rf /var/lib/apt/lists/*
 
 #Install R with blas and lapack support. Remove '--with-blas --with-lapack' to disable
 WORKDIR /usr/local/src
@@ -67,6 +68,7 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DPYTHON="$PYTHON" ../
 RUN make -j4
 
 RUN ../external/node/install-node.sh
+
 # add node and npm paths respectively
 ENV PATH=$PATH:/shiny-server/ext/node/bin/:/shiny-server/bin/
 
