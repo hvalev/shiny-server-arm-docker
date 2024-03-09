@@ -1,7 +1,7 @@
 ###########################
 # Builder image
 ###########################
-FROM debian:buster-20240211 AS builder
+FROM debian:bookworm-20240211 AS builder
 
 ENV V_RStudio=R-4.3.3
 ENV V_ShinyServer=v1.5.21.1012
@@ -86,7 +86,7 @@ RUN make -j4 install
 ###########################
 # Production image
 ###########################
-FROM debian:buster-20240211 as shiny
+FROM debian:bookworm-20240211 as shiny
 COPY --from=builder /usr/local/bin/R /usr/local/bin/R
 COPY --from=builder /usr/local/lib/R /usr/local/lib/R
 COPY --from=builder /usr/local/bin/Rscript /usr/local/bin/Rscript
