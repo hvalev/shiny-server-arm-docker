@@ -24,6 +24,9 @@ RUN apt-get update && apt-get install -y \
     texlive-fonts-extra \
     screen \
     wget \
+    tar \
+    xz-utils \
+    coreutils \
     libpcre2-dev \
     git \
     apt-utils \
