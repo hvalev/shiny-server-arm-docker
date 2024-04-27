@@ -3,7 +3,7 @@
 ###########################
 FROM debian:bookworm-20240408 AS builder
 
-ENV V_RStudio=R-4.3.3
+ENV V_RStudio=R-4.4.0
 ENV V_ShinyServer=v1.5.22.1017
 
 RUN apt-get update && apt-get install -y \
