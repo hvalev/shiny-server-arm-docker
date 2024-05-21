@@ -5,7 +5,7 @@
 ![Docker Pulls](https://img.shields.io/docker/pulls/hvalev/shiny-server-arm)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/hvalev/shiny-server-arm)
 
-Docker image hosting Shiny-Server for ARM (armv7/arm64) and AMD (amd64) architectures. The build features some fixes targeting ARM and is primarily intended to be deployed on SBCs (Single Board Computers) such as Raspberry Pi.
+Docker image hosting Shiny-Server for x86 and ARM (armv7/arm64) architectures. The build features some fixes targeting ARM and comes in two flavours - with and without devtools installed.
 
 ## How to run it with docker
 First we need to create the folder structure on the host, which will be used to host the shiny-server config, logs and applications.
