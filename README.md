@@ -29,7 +29,7 @@ docker run -d -p 3838:3838 -v ~/shiny-server/apps:/srv/shiny-server/ -v ~/shiny-
 ```
 and navigate to:
 ```
-http://host-ip:3838/hello
+http://localhost:3838/hello/
 ```
 
 ## How to run it with docker-compose
