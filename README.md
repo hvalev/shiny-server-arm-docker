@@ -35,7 +35,6 @@ http://host-ip:3838/hello
 ## How to run it with docker-compose
 You need to create the folders and copy the configurations from the previous section and use the following docker-compose service:
 ```yaml
-version: "3.8"
 services:
   shiny-server:
     image: hvalev/shiny-server-arm:latest
