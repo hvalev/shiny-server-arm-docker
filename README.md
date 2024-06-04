@@ -9,14 +9,14 @@ Docker image hosting Shiny-Server for x86 and ARM (armv7/arm64) architectures. T
 
 ## How to run it with docker
 First we need to create the folder structure on the host, which will be used to host the shiny-server config, logs and applications.
-```
+```bash
 mkdir ~/shiny-server
 mkdir ~/shiny-server/logs
 mkdir ~/shiny-server/conf
 mkdir ~/shiny-server/apps
 ```
 Then we need to copy over the server configuration from this repository as well as the hello world app to test if everything works.
-```
+```bash
 git clone https://github.com/hvalev/shiny-server-arm-docker.git ~/shiny-server-arm-docker
 cp ~/shiny-server-arm-docker/shiny-server.conf ~/shiny-server/conf/shiny-server.conf
 cp ~/shiny-server-arm-docker/init.sh ~/shiny-server/conf/init.sh
@@ -24,13 +24,17 @@ cp -r ~/shiny-server-arm-docker/hello/ ~/shiny-server/apps/
 rm -rf ~/shiny-server-arm-docker/
 ```
 Run the container:
-```docker run -d -p 3838:3838 -v ~/shiny-server/apps:/srv/shiny-server/ -v ~/shiny-server/logs:/var/log/shiny-server/ -v ~/shiny-server/conf:/etc/shiny-server/ --name shiny-server hvalev/shiny-server-arm:latest```
+```bash
+docker run -d -p 3838:3838 -v ~/shiny-server/apps:/srv/shiny-server/ -v ~/shiny-server/logs:/var/log/shiny-server/ -v ~/shiny-server/conf:/etc/shiny-server/ --name shiny-server hvalev/shiny-server-arm:latest
+```
 and navigate to:
-```http://host-ip:3838/hello```
+```
+http://host-ip:3838/hello
+```
 
 ## How to run it with docker-compose
 You need to create the folders and copy the configurations from the previous section and use the following docker-compose service:
-```
+```yaml
 version: "3.8"
 services:
   shiny-server:
@@ -65,7 +69,7 @@ If you run into any trouble along the way, it might be due to permission problem
 The Dockerfile implements a multi-stage build and will produce a functional 1GB shiny-server image equipped with all necessary libraries to build and install most R-packages. Additionally, it will leave a 4.5GB builder image behind post-build, which you can remove. Be aware that this will take at least 2 hours to build even on an SSD.
 
 Build the container with the following command:
-```
+```bash
 docker build https://github.com/hvalev/shiny-server-arm-docker.git --tag shiny-server-arm
 ```
 
