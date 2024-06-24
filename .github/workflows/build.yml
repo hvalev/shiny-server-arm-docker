@@ -37,7 +37,7 @@ jobs:
           username: ${{ secrets.DOCKERHUBUNAME }}
           password: ${{ secrets.DOCKERHUBTOKEN }} 
       - name: Build and push shiny
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
@@ -50,7 +50,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Build and push shiny with devtools
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
