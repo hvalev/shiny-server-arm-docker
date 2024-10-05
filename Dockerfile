@@ -4,7 +4,7 @@
 FROM debian:bookworm-20240926 AS builder
 
 ENV V_RStudio=R-4.4.1
-ENV V_ShinyServer=v1.5.22.1017
+ENV V_ShinyServer=v1.5.23.1030
 
 RUN apt-get update && apt-get install -y \
     gfortran \
