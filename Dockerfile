@@ -4,7 +4,7 @@
 FROM debian:bookworm-20240926 AS builder
 
 ENV V_RStudio=R-4.4.1
-ENV V_ShinyServer=v1.5.22.1017
+ENV V_ShinyServer=v1.5.23.1030
 
 RUN apt-get update && apt-get install -y \
     gfortran \
@@ -48,20 +48,11 @@ RUN wget https://cran.rstudio.com/src/base/R-4/${V_RStudio}.tar.gz && \
     cd /usr/local/src/ && \
     rm -rf ${V_RStudio}*
 
-# #Set python3 as the default python
-# RUN rm /usr/bin/python && \
-#     ln -s /usr/bin/python3 /usr/bin/python
-
 #Install shiny-server with fix for arm architectures
 WORKDIR /
 RUN git clone --depth 1 --branch ${V_ShinyServer} https://github.com/rstudio/shiny-server.git && \
     mkdir shiny-server/tmp
 COPY binding.gyp /shiny-server/tmp/binding.gyp
-
-#Automagically determine arch and replace it in hash values and links
-COPY determine_arch.sh /determine_arch.sh
-RUN chmod +x determine_arch.sh && \
-    ./determine_arch.sh
 
 ARG PYTHON=`which python3`
 
@@ -89,7 +80,7 @@ RUN make -j4 install
 ###########################
 # Production image
 ###########################
-FROM debian:bookworm-20240926 as shiny
+FROM debian:bookworm-20240926 AS shiny
 COPY --from=builder /usr/local/bin/R /usr/local/bin/R
 COPY --from=builder /usr/local/lib/R /usr/local/lib/R
 COPY --from=builder /usr/local/bin/Rscript /usr/local/bin/Rscript
