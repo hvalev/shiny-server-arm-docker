@@ -80,7 +80,7 @@ RUN make -j4 install
 ###########################
 # Production image
 ###########################
-FROM debian:bookworm-20240926 as shiny
+FROM debian:bookworm-20240926 AS shiny
 COPY --from=builder /usr/local/bin/R /usr/local/bin/R
 COPY --from=builder /usr/local/lib/R /usr/local/lib/R
 COPY --from=builder /usr/local/bin/Rscript /usr/local/bin/Rscript
