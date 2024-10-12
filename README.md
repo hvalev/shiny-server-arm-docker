@@ -84,7 +84,7 @@ Although you can install R libraries post-install, you could also bake those in 
 ```RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/')"```.
 Cairo is needed for the hello-world preloaded app. If it's missing the histogram won't be loaded.
 
-### Node.js
+### Node.js (DEPRECATED since R4.4.1-S1.5.23.1030)
 I have written the [determine_arch.sh](https://github.com/hvalev/shiny-server-arm-docker/blob/master/determine_arch.sh) script, which automagically determines the architecture it's running on, fetches the appropriate node.js checksum and replaces it in the install-node.sh file. It should be future-proof as the reference node.js version is taken from the cloned shiny-server repository itself.
 
 ## Acknowledgements

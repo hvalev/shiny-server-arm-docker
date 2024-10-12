@@ -48,20 +48,11 @@ RUN wget https://cran.rstudio.com/src/base/R-4/${V_RStudio}.tar.gz && \
     cd /usr/local/src/ && \
     rm -rf ${V_RStudio}*
 
-# #Set python3 as the default python
-# RUN rm /usr/bin/python && \
-#     ln -s /usr/bin/python3 /usr/bin/python
-
 #Install shiny-server with fix for arm architectures
 WORKDIR /
 RUN git clone --depth 1 --branch ${V_ShinyServer} https://github.com/rstudio/shiny-server.git && \
     mkdir shiny-server/tmp
 COPY binding.gyp /shiny-server/tmp/binding.gyp
-
-#Automagically determine arch and replace it in hash values and links
-COPY determine_arch.sh /determine_arch.sh
-RUN chmod +x determine_arch.sh && \
-    ./determine_arch.sh
 
 ARG PYTHON=`which python3`
 
