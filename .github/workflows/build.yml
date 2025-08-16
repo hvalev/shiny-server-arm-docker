@@ -64,7 +64,7 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v4
-        env:
-           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUBUNAME }}
-           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUBPWD }}
-           DOCKERHUB_REPOSITORY: hvalev/shiny-server-arm
+        with:
+          username: ${{ secrets.DOCKERHUBUNAME }}
+          password: ${{ secrets.DOCKERHUBPWD }}
+          repository: hvalev/shiny-server-arm
