@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Shiny Server Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: rstudio/shiny-server
       - name: Install libs
@@ -21,7 +21,7 @@ jobs:
           tag=$(git describe --tags `git rev-list --tags --max-count=1` | cut -b 2-)
           echo "release_tag=$tag" >> $GITHUB_OUTPUT
       - name: Checkout 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Get Latest R Release
         id: shiny-version-current
         run: |
