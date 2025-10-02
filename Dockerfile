@@ -1,7 +1,7 @@
 ###########################
 # Builder image
 ###########################
-FROM debian:trixie-20250811 AS builder
+FROM debian:trixie-20250908 AS builder
 
 ENV V_RStudio=R-4.5.1
 ENV V_ShinyServer=v1.5.23.1030
@@ -61,9 +61,37 @@ RUN mkdir ../build
 RUN cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DPYTHON="$PYTHON" ../
 RUN make -j4
 
-RUN ../external/node/install-node.sh
+# Omit install_node.sh and do that manually here
+# The reason is discrepencies between arch detection
+# on bare metal and in docker qemu arch emulation
+RUN apt-get update && apt-get install -y \
+    wget \
+    xz-utils \
+    curl \
+    tar \
+    build-essential \
+    python3 \
+    python3-dev \
+    python3-setuptools \
+    && rm -rf /var/lib/apt/lists/*
 
-# add node and npm paths respectively
+# Get the correct node version for the builder arch of the system
+ARG TARGETARCH
+RUN mkdir -p /shiny-server/ext/node
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+      curl -fsSL https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-x64.tar.xz \
+      | tar -xJ -C /shiny-server/ext/node --strip-components=1; \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
+      curl -fsSL https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-arm64.tar.xz \
+      | tar -xJ -C /shiny-server/ext/node --strip-components=1; \
+    elif [ "$TARGETARCH" = "arm" ]; then \
+      curl -fsSL https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-armv7l.tar.xz \
+      | tar -xJ -C /shiny-server/ext/node --strip-components=1; \
+    else \
+      echo "Unsupported architecture $TARGETARCH" && exit 1; \
+    fi
+
+RUN chmod +x /shiny-server/ext/node/bin/node /shiny-server/ext/node/bin/npm
 ENV PATH=$PATH:/shiny-server/ext/node/bin/:/shiny-server/bin/
 
 RUN node ../ext/node/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js configure
@@ -80,7 +108,7 @@ RUN make -j4 install
 ###########################
 # Production image
 ###########################
-FROM debian:trixie-20250811 AS shiny
+FROM debian:trixie-20250908 AS shiny
 COPY --from=builder /usr/local/bin/R /usr/local/bin/R
 COPY --from=builder /usr/local/lib/R /usr/local/lib/R
 COPY --from=builder /usr/local/bin/Rscript /usr/local/bin/Rscript
