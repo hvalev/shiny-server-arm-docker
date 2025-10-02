@@ -10,6 +10,7 @@ jobs:
   buildx:
     runs-on: self-hosted
     timeout-minutes: 4320
+    # runs-on: ubuntu-latest
     steps:
       - name: Free Disk Space
         uses: ShubhamTatvamasi/free-disk-space-action@master
@@ -19,7 +20,7 @@ jobs:
 
       - name: Get Version
         id: get_version
-        uses: battila7/get-version-action@v2.3.0
+        uses: dhkatz/get-version-action@v3.0.0
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -31,7 +32,6 @@ jobs:
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
 
-      # Define a local cache directory on your runner
       - name: Prepare local cache directory
         run: mkdir -p /tmp/runner/docker-cache
 
@@ -43,6 +43,8 @@ jobs:
           target: shiny
           cache-from: type=local,src=/tmp/runner/docker-cache
           cache-to: type=local,dest=/tmp/runner/docker-cache,mode=max
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
 
       - name: Build shiny with devtools
         uses: docker/build-push-action@v6
@@ -52,3 +54,5 @@ jobs:
           target: shiny-with-devtools
           cache-from: type=local,src=/tmp/runner/docker-cache
           cache-to: type=local,dest=/tmp/runner/docker-cache,mode=max
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
