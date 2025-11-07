@@ -3,7 +3,7 @@
 ###########################
 FROM debian:trixie-20251103 AS builder
 
-ENV V_RStudio=R-4.5.1
+ENV V_RStudio=R-4.5.2
 ENV V_ShinyServer=v1.5.23.1030
 
 RUN apt-get update && apt-get install -y \
