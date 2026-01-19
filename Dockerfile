@@ -43,8 +43,8 @@ RUN wget https://cran.rstudio.com/src/base/R-4/${V_RStudio}.tar.gz && \
     tar zxvf ${V_RStudio}.tar.gz && \
     cd /usr/local/src/${V_RStudio} && \
     ./configure --enable-R-shlib --with-blas --with-lapack && \
-    make -j8 && \
-    make -j8 install && \
+    make -j4 && \
+    make -j4 install && \
     cd /usr/local/src/ && \
     rm -rf ${V_RStudio}*
 
@@ -59,7 +59,7 @@ ARG PYTHON=`which python3`
 WORKDIR /shiny-server/tmp/
 RUN mkdir ../build
 RUN cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DPYTHON="$PYTHON" ../
-RUN make -j8
+RUN make -j4
 
 # Omit install_node.sh and do that manually here
 # The reason is discrepencies between arch detection
@@ -103,7 +103,7 @@ RUN npm --python="${PYTHON}" install --no-optional --unsafe-perm
 RUN npm --python="${PYTHON}" rebuild
 
 WORKDIR /shiny-server/tmp/
-RUN make -j8 install
+RUN make -j4 install
 
 ###########################
 # Production image
