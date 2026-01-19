@@ -163,7 +163,7 @@ RUN apt-get update && \
 #Preload hello world project
 COPY hello/* /srv/shiny-server/hello/
 #Prevent installation from hanging for multi-arch builds due to insufficient ram
-RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/', clean = TRUE, Ncpus = 2)"
+RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/', clean = TRUE, Ncpus = 4)"
 
 ENTRYPOINT ["/etc/shiny-server/init.sh"]
 
@@ -189,4 +189,4 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # installing devtools
-RUN R -e "install.packages('devtools', repos='http://cran.rstudio.com/', type='source', clean = TRUE, Ncpus = 2)"
+RUN R -e "install.packages('devtools', repos='http://cran.rstudio.com/', type='source', clean = TRUE, Ncpus = 4)"
