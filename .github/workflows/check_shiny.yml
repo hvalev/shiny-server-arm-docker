@@ -2,7 +2,7 @@ name: Check Shiny Version
 
 on:
   schedule:
-    - cron: '0 4 * * 3'
+    - cron: '0 4 * * 6'
 
 jobs:
   updateShiny:
