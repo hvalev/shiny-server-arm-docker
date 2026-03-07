@@ -36,7 +36,7 @@ jobs:
         run: mkdir -p /tmp/runner/docker-cache
 
       - name: Build shiny
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/arm/v7,linux/arm64,linux/amd64
@@ -47,7 +47,7 @@ jobs:
           # cache-to: type=gha,mode=max
 
       - name: Build shiny with devtools
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/arm/v7,linux/arm64,linux/amd64
