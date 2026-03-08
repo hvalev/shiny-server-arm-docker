@@ -28,13 +28,13 @@ jobs:
           echo ${{ steps.r-version.outputs.release_tag }} > R-version.txt
       
       - name: Update Readme.md & Dockerfile
-        uses: jacobtomlinson/gha-find-replace@master
+        uses: jacobtomlinson/gha-find-replace@v3.0.5
         with:
           find: ${{ steps.r-version.outputs.current_tag }}
           replace: ${{ steps.r-version.outputs.release_tag }}
       
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@v8.1.0
         with:
           commit-message: Update R to ${{ steps.r-version.outputs.release_tag }}
           title: Update R to ${{ steps.r-version.outputs.release_tag }}

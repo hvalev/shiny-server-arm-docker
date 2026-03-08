@@ -40,13 +40,13 @@ jobs:
           echo ${{ steps.shiny-version-new.outputs.release_tag }} > Shiny-version.txt
       
       - name: Update Readme.md & Dockerfile
-        uses: jacobtomlinson/gha-find-replace@master
+        uses: jacobtomlinson/gha-find-replace@v3.0.5
         with:
           find: ${{ steps.shiny-version-current.outputs.current_tag }}
           replace: ${{ steps.shiny-version-new.outputs.release_tag }}
       
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@v8.1.0
         with:
           commit-message: Update Shiny Server to ${{ steps.shiny-version-new.outputs.release_tag }}
           title: Update Shiny Server to ${{ steps.shiny-version-new.outputs.release_tag }}

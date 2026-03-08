@@ -1,0 +1,75 @@
+name: Auto Release
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - 'R-version.txt'
+      - 'Shiny-version.txt'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Read Versions
+        id: versions
+        run: |
+          R_VERSION=$(cat R-version.txt | tr -d '[:space:]')
+          SHINY_VERSION=$(cat Shiny-version.txt | tr -d '[:space:]')
+          echo "r_version=$R_VERSION" >> $GITHUB_OUTPUT
+          echo "shiny_version=$SHINY_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=R${R_VERSION}-S${SHINY_VERSION}" >> $GITHUB_OUTPUT
+          echo "R Version: $R_VERSION"
+          echo "Shiny Version: $SHINY_VERSION"
+          echo "Tag: R${R_VERSION}-S${SHINY_VERSION}"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "${{ steps.versions.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag ${{ steps.versions.outputs.tag }} already exists"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Tag ${{ steps.versions.outputs.tag }} does not exist"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.versions.outputs.tag }}" -m "Release ${{ steps.versions.outputs.tag }}"
+          git push origin "${{ steps.versions.outputs.tag }}"
+
+      - name: Create GitHub Release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.versions.outputs.tag }}
+          name: Release ${{ steps.versions.outputs.tag }}
+          body: |
+            ## Changes
+            - R Version: ${{ steps.versions.outputs.r_version }}
+            - Shiny Server Version: ${{ steps.versions.outputs.shiny_version }}
+
+            ## Docker Images
+            - `hvalev/shiny-server-arm:${{ steps.versions.outputs.tag }}`
+            - `hvalev/shiny-server-arm:latest`
+            - `hvalev/shiny-server-arm:devtools-${{ steps.versions.outputs.tag }}`
+            - `hvalev/shiny-server-arm:devtools-latest`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
