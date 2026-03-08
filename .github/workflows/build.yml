@@ -18,13 +18,6 @@ jobs:
     timeout-minutes: 4320
     # runs-on: ubuntu-latest
     steps:
-      - name: Free Disk Space
-        uses: easimon/maximize-build-space@v10
-        with:
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-
       - name: Checkout
         uses: actions/checkout@v6
 
