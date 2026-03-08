@@ -3,9 +3,6 @@ on:
   push:
     tags:
       - '**'
-    branches:
-      - master
-      - main
   workflow_dispatch:
 
 concurrency:
