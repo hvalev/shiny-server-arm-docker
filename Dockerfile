@@ -136,6 +136,15 @@ COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
 COPY init.sh /etc/shiny-server/init.sh
 RUN chmod 777 /etc/shiny-server/init.sh
 
+#Keep backup copies in case user mounts volume over /etc/shiny-server/
+COPY init.sh /opt/default-init.sh
+RUN chmod +x /opt/default-init.sh
+COPY shiny-server.conf /opt/default-shiny-server.conf
+
+#Entrypoint wrapper that provisions config files if missing
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     gfortran \
@@ -165,7 +174,7 @@ COPY hello/* /srv/shiny-server/hello/
 #Prevent installation from hanging for multi-arch builds due to insufficient ram
 RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/', clean = TRUE, Ncpus = 4)"
 
-ENTRYPOINT ["/etc/shiny-server/init.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 ###########################
 # Devtools Production image

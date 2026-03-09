@@ -19,7 +19,6 @@ Then we need to copy over the server configuration from this repository as well 
 ```bash
 git clone https://github.com/hvalev/shiny-server-arm-docker.git ~/shiny-server-arm-docker
 cp ~/shiny-server-arm-docker/shiny-server.conf ~/shiny-server/conf/shiny-server.conf
-cp ~/shiny-server-arm-docker/init.sh ~/shiny-server/conf/init.sh
 cp -r ~/shiny-server-arm-docker/hello/ ~/shiny-server/apps/
 rm -rf ~/shiny-server-arm-docker/
 ```
@@ -27,33 +26,34 @@ Run the container:
 ```bash
 docker run -d -p 3838:3838 -v ~/shiny-server/apps:/srv/shiny-server/ -v ~/shiny-server/logs:/var/log/shiny-server/ -v ~/shiny-server/conf:/etc/shiny-server/ --name shiny-server hvalev/shiny-server-arm:latest
 ```
+**Note:** The container automatically provisions a default `init.sh` script on first run. If you want to customize it, place your own `init.sh` in `~/shiny-server/conf/` before starting the container.
+
 and navigate to:
 ```
 http://localhost:3838/hello/
 ```
 
 ## How to run it with docker-compose
-You need to create the folders and copy the configurations from the previous section and use the following docker-compose service:
-```yaml
-services:
-  shiny-server:
-    image: hvalev/shiny-server-arm:latest
-    container_name: shiny-server-arm
-    ports:
-      - 3838:3838
-    volumes:
-       - ~/shiny-server/apps:/srv/shiny-server/
-       - ~/shiny-server/logs:/var/log/shiny-server/
-       - ~/shiny-server/conf:/etc/shiny-server/
-    restart: always
+You need to create the folders as described in the previous section and copy the `docker-compose.yml` file from this repository:
+```bash
+git clone https://github.com/hvalev/shiny-server-arm-docker.git ~/shiny-server-arm-docker
+cp ~/shiny-server-arm-docker/docker-compose.yml ~/shiny-server/docker-compose.yml
+rm -rf ~/shiny-server-arm-docker/
 ```
-Run: ```docker-compose up -d``` and navigate to: ```http://host-ip:3838/hello```
+Then start the container:
+```bash
+cd ~/shiny-server
+docker-compose up -d
+```
+**Note:** The container automatically provisions a default `init.sh` script on first run. Navigate to: `http://host-ip:3838/hello`
 
 ## How to use it
 The following sections will explain how you can install libraries, import apps, and configure your shiny-server image.
 
 ### Installing libraries
-Libraries can be installed by modifying the ```init.sh``` file under ```~/shiny-server/conf```. It contains and will execute the ```R -e "install.packages(c('lib1','lib2',...))``` command the first time the container is started. Simply add the libraries you wish installed there. In order to avoid installing the same libraries on each restart, the script generates an ```init_done``` file and will not run if the file is present on the system. To add additional libraries in subsequent runs, delete the ```init_done``` file and add the new libraries to ```init.sh``` as before. Please note that installed libraries will persist between restarts as long as the container image is not removed or recreated.
+Libraries can be installed by modifying the `init.sh` file under `~/shiny-server/conf`. It contains and will execute the `R -e "install.packages(c('lib1','lib2',...))"` command the first time the container is started. Simply add the libraries you wish installed there. In order to avoid installing the same libraries on each restart, the script generates an `init_done` file and will not run if the file is present on the system. To add additional libraries in subsequent runs, delete the `init_done` file and add the new libraries to `init.sh` as before. Please note that installed libraries will persist between restarts as long as the container image is not removed or recreated.
+
+**Customizing init.sh:** You can provide your own `init.sh` script by placing it in `~/shiny-server/conf/init.sh` before starting the container for the first time. The container will use your custom script instead of creating a default one. Alternatively, you can modify the auto-generated `init.sh` after the first run.
 
 ### Adding and configuring apps
 Apps can be added to the ```~/shiny-server/apps``` folder and will be loaded into shiny-server. If you followed the steps in so far, the hello-world app will be accessible under ```http://host-ip:3838/hello```. You can add your own app by copying it over to the folder ```shiny-server/apps```, where it will be available under ```http://host-ip:3838/yourappfolder```. Be aware that each app will need to have its own configuration file under ```~/shiny-server/yourappfolder/.shiny_app.conf```. You can use the hello-world app as staging ground for building your new app. 

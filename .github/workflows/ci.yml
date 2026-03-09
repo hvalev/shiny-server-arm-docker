@@ -75,22 +75,28 @@ jobs:
 
       - name: Smoke Test
         run: |
-          # Start container in background
-          docker run -d -p 3838:3838 --name shiny-test hvalev/shiny-server-arm:latest
-
-          # Wait for container to be ready (max 60 seconds)
+          # Start container in background (runs on host due to DooD)
+          docker run -d --name shiny-test hvalev/shiny-server-arm:latest
+          
+          # Wait for container to start and get its IP
+          sleep 5
+          CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' shiny-test)
+          echo "Container IP: $CONTAINER_IP"
+          
+          # Wait for Shiny server to be ready (max 60 seconds)
           for i in {1..30}; do
-            if curl -s http://localhost:3838 > /dev/null; then
-              echo "Shiny server is up!"
+            if curl -s "http://$CONTAINER_IP:3838" > /dev/null 2>&1; then
+              echo "✅ Shiny server is up!"
               break
             fi
             echo "Waiting for Shiny server... ($i/30)"
             sleep 2
           done
-
+          
           # Test the hello app
-          curl -f http://localhost:3838/hello/ || exit 1
-
+          curl -f "http://$CONTAINER_IP:3838/hello/" || exit 1
+          echo "✅ Smoke test passed!"
+          
           # Cleanup
           docker stop shiny-test
           docker rm shiny-test
