@@ -1,0 +1,11 @@
+services:
+  shiny_server:
+    image: hvalev/shiny-server-arm:latest
+    container_name: shiny-server-arm
+    volumes:
+      - ~/shiny-server/apps:/srv/shiny-server/
+      - ~/shiny-server/logs:/var/log/shiny-server/
+      - ~/shiny-server/conf:/etc/shiny-server/
+    ports:
+      - 3838:3838
+    restart: always
