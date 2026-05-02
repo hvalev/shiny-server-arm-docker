@@ -23,6 +23,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Export Cache Registry Env Vars
+        run: |
+          echo "::add-mask::$CACHE_REGISTRY_PASSWORD"
+          echo "CACHE_REGISTRY_URL=$CACHE_REGISTRY_URL" >> $GITHUB_ENV
+          echo "CACHE_REGISTRY_USERNAME=$CACHE_REGISTRY_USERNAME" >> $GITHUB_ENV
+          echo "CACHE_REGISTRY_PASSWORD=$CACHE_REGISTRY_PASSWORD" >> $GITHUB_ENV
+
       - name: Get Version
         id: get_version
         uses: dhkatz/get-version-action@v3.0.0
