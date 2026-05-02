@@ -20,15 +20,17 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 4320
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Export Cache Registry Env Vars
+      - name: Mask Cache Registry Secrets
         run: |
+          echo "::add-mask::$CACHE_REGISTRY_URL"
+          echo "::add-mask::$CACHE_REGISTRY_USERNAME"
           echo "::add-mask::$CACHE_REGISTRY_PASSWORD"
           echo "CACHE_REGISTRY_URL=$CACHE_REGISTRY_URL" >> $GITHUB_ENV
           echo "CACHE_REGISTRY_USERNAME=$CACHE_REGISTRY_USERNAME" >> $GITHUB_ENV
           echo "CACHE_REGISTRY_PASSWORD=$CACHE_REGISTRY_PASSWORD" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v6
 
       - name: Get Version
         id: get_version
