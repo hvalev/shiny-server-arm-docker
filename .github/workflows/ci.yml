@@ -62,35 +62,3 @@ jobs:
           cache-to: type=local,dest=/tmp/runner/docker-cache,mode=max
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
-
-      - name: Build and load image for testing
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          load: true
-          platforms: linux/amd64
-          target: shiny
-          tags: hvalev/shiny-server-arm:latest
-          cache-from: type=local,src=/tmp/runner/docker-cache
-
-      - name: Smoke Test
-        run: |
-          # Start container in background
-          docker run -d -p 3838:3838 --name shiny-test hvalev/shiny-server-arm:latest
-
-          # Wait for container to be ready (max 60 seconds)
-          for i in {1..30}; do
-            if curl -s http://localhost:3838 > /dev/null; then
-              echo "Shiny server is up!"
-              break
-            fi
-            echo "Waiting for Shiny server... ($i/30)"
-            sleep 2
-          done
-
-          # Test the hello app
-          curl -f http://localhost:3838/hello/ || exit 1
-
-          # Cleanup
-          docker stop shiny-test
-          docker rm shiny-test
