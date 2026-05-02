@@ -37,8 +37,9 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v4
         with:
-          name: shiny-builder
-          cleanup: false
+          buildkitd-config-inline: |
+            [registry."${{ env.CACHE_REGISTRY_URL }}"]
+              http = true
 
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
