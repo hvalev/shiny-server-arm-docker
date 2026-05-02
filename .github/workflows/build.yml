@@ -13,8 +13,16 @@ jobs:
   buildx:
     runs-on: self-hosted
     timeout-minutes: 4320
-    # runs-on: ubuntu-latest
     steps:
+      - name: Mask Cache Registry Secrets
+        run: |
+          echo "::add-mask::$CACHE_REGISTRY_URL"
+          echo "::add-mask::$CACHE_REGISTRY_USERNAME"
+          echo "::add-mask::$CACHE_REGISTRY_PASSWORD"
+          echo "CACHE_REGISTRY_URL=$CACHE_REGISTRY_URL" >> $GITHUB_ENV
+          echo "CACHE_REGISTRY_USERNAME=$CACHE_REGISTRY_USERNAME" >> $GITHUB_ENV
+          echo "CACHE_REGISTRY_PASSWORD=$CACHE_REGISTRY_PASSWORD" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v6
 
@@ -28,18 +36,26 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v4
-      
+        with:
+          buildkitd-config-inline: |
+            [registry."${{ env.CACHE_REGISTRY_URL }}"]
+              http = true
+
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
 
-      - name: Prepare local cache directory
-        run: mkdir -p /tmp/runner/docker-cache
+      - name: Login to Cache Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.CACHE_REGISTRY_URL }}
+          username: ${{ env.CACHE_REGISTRY_USERNAME }}
+          password: ${{ env.CACHE_REGISTRY_PASSWORD }}
 
       - name: Login to DockerHub
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUBUNAME }}
-          password: ${{ secrets.DOCKERHUBTOKEN }} 
+          password: ${{ secrets.DOCKERHUBTOKEN }}
 
       - name: Build and push shiny
         uses: docker/build-push-action@v7
@@ -52,10 +68,8 @@ jobs:
           tags: |
             hvalev/shiny-server-arm:${{ steps.get_version.outputs.version }}
             hvalev/shiny-server-arm:latest
-          cache-from: type=local,src=/tmp/runner/docker-cache
-          cache-to: type=local,dest=/tmp/runner/docker-cache,mode=max
-          # cache-from: type=gha
-          # cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.CACHE_REGISTRY_URL }}/shiny-cache:buildcache
+          cache-to: type=registry,ref=${{ env.CACHE_REGISTRY_URL }}/shiny-cache:buildcache,mode=max
 
       - name: Build and push shiny with devtools
         uses: docker/build-push-action@v7
@@ -68,10 +82,8 @@ jobs:
           tags: |
             hvalev/shiny-server-arm:devtools-${{ steps.get_version.outputs.version }}
             hvalev/shiny-server-arm:devtools-latest
-          cache-from: type=local,src=/tmp/runner/docker-cache
-          cache-to: type=local,dest=/tmp/runner/docker-cache,mode=max
-          # cache-from: type=gha
-          # cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ env.CACHE_REGISTRY_URL }}/shiny-cache:buildcache
+          cache-to: type=registry,ref=${{ env.CACHE_REGISTRY_URL }}/shiny-cache:buildcache,mode=max
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v5
