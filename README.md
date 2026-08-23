@@ -1,6 +1,6 @@
 # Shiny Server on Docker for x86 and ARM
 [![build](https://github.com/hvalev/shiny-server-arm-docker/actions/workflows/build.yml/badge.svg)](https://github.com/hvalev/shiny-server-arm-docker/actions/workflows/build.yml)
-![R%20version](https://img.shields.io/badge/R%20version-4.5.2-green)
+![R%20version](https://img.shields.io/badge/R%20version-4.6.1-green)
 ![Shiny%20version](https://img.shields.io/badge/Shiny%20version-1.5.23.1030-green)
 ![Docker Pulls](https://img.shields.io/docker/pulls/hvalev/shiny-server-arm)
 ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/hvalev/shiny-server-arm)
@@ -69,7 +69,15 @@ The Dockerfile implements a multi-stage build and will produce a functional 1GB 
 
 Build the container with the following command:
 ```bash
-docker build https://github.com/hvalev/shiny-server-arm-docker.git --tag shiny-server-arm
+git clone https://github.com/hvalev/shiny-server-arm-docker.git
+docker build shiny-server-arm-docker --tag shiny-server-arm
+```
+
+The build supports parallelism build args for fast hosts (defaults are
+conservative for small ARM devices):
+```bash
+docker build shiny-server-arm-docker --tag shiny-server-arm \
+    --build-arg R_BUILD_JOBS=8 --build-arg BUILD_JOBS=8 --build-arg PKG_CPUS=8
 ```
 
 ### RAM usage

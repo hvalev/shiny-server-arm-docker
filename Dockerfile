@@ -3,12 +3,20 @@
 ###########################
 FROM debian:trixie-20260518 AS builder
 
-ENV V_RStudio=R-4.5.2
+ENV V_RStudio=R-4.6.1
 ENV V_ShinyServer=v1.5.23.1030
+
+# Parallelism for the native builds. Defaults are conservative (small ARM
+# devices); override for fast hosts, e.g. --build-arg R_BUILD_JOBS=16
+ARG R_BUILD_JOBS=4
+ARG BUILD_JOBS=4
 
 RUN apt-get update && apt-get install -y \
     gfortran \
-    libreadline6-dev \
+    file \
+    libblas-dev \
+    liblapack-dev \
+    libreadline-dev \
     libx11-dev \
     libxt-dev \
     libpng-dev \
@@ -34,19 +42,25 @@ RUN apt-get update && apt-get install -y \
     make \
     cmake \
     g++ \
+    python3 \
+    python3-dev \
+    python3-setuptools \
     default-jdk && \
     rm -rf /var/lib/apt/lists/*
 
 #Install R with blas and lapack support. Remove '--with-blas --with-lapack' to disable
+# CRAN only serves the current release at the R-latest alias; the test below
+# fails the build if CRAN's latest release no longer matches the pinned version.
 WORKDIR /usr/local/src
-RUN wget https://cran.rstudio.com/src/base/R-4/${V_RStudio}.tar.gz && \
-    tar zxvf ${V_RStudio}.tar.gz && \
-    cd /usr/local/src/${V_RStudio} && \
+RUN wget https://cran.r-project.org/src/base/R-latest.tar.gz && \
+    tar xzf R-latest.tar.gz && \
+    test -d ${V_RStudio} && \
+    cd ${V_RStudio} && \
     ./configure --enable-R-shlib --with-blas --with-lapack && \
-    make -j4 && \
-    make -j4 install && \
+    make -j${R_BUILD_JOBS} && \
+    make -j${R_BUILD_JOBS} install && \
     cd /usr/local/src/ && \
-    rm -rf ${V_RStudio}*
+    rm -rf ${V_RStudio} R-latest.tar.gz
 
 #Install shiny-server with fix for arm architectures
 WORKDIR /
@@ -54,12 +68,10 @@ RUN git clone --depth 1 --branch ${V_ShinyServer} https://github.com/rstudio/shi
     mkdir shiny-server/tmp
 COPY binding.gyp /shiny-server/tmp/binding.gyp
 
-ARG PYTHON=`which python3`
-
 WORKDIR /shiny-server/tmp/
 RUN mkdir ../build
-RUN cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DPYTHON="$PYTHON" ../
-RUN make -j4
+RUN cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DPYTHON="$(which python3)" ../
+RUN make -j${BUILD_JOBS}
 
 # Omit install_node.sh and do that manually here
 # The reason is discrepencies between arch detection
@@ -70,9 +82,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     tar \
     build-essential \
-    python3 \
-    python3-dev \
-    python3-setuptools \
     && rm -rf /var/lib/apt/lists/*
 
 # Get the correct node version for the builder arch of the system
@@ -91,19 +100,24 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
       echo "Unsupported architecture $TARGETARCH" && exit 1; \
     fi
 
-RUN chmod +x /shiny-server/ext/node/bin/node /shiny-server/ext/node/bin/npm
+# The C++ launcher (bin/shiny-server) execs the node binary under the name
+# "shiny-server" (see src/launcher.cc in the shiny-server repo). The original
+# install_node.sh created that copy; without it the launcher silently exits 0
+# and no logs are produced at all.
+RUN cp /shiny-server/ext/node/bin/node /shiny-server/ext/node/bin/shiny-server
+RUN chmod +x /shiny-server/ext/node/bin/node /shiny-server/ext/node/bin/npm /shiny-server/ext/node/bin/shiny-server
 ENV PATH=$PATH:/shiny-server/ext/node/bin/:/shiny-server/bin/
 
 RUN node ../ext/node/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js configure
-RUN node ../ext/node/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js --python="$PYTHON" rebuild
+RUN node ../ext/node/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js --python="$(which python3)" rebuild
 
 WORKDIR /shiny-server/
-RUN npm --python="${PYTHON}" install --no-optional
-RUN npm --python="${PYTHON}" install --no-optional --unsafe-perm
-RUN npm --python="${PYTHON}" rebuild
+RUN npm --python="$(which python3)" install --no-optional
+RUN npm --python="$(which python3)" install --no-optional --unsafe-perm
+RUN npm --python="$(which python3)" rebuild
 
 WORKDIR /shiny-server/tmp/
-RUN make -j4 install
+RUN make -j${BUILD_JOBS} install
 
 ###########################
 # Production image
@@ -139,7 +153,10 @@ RUN chmod 777 /etc/shiny-server/init.sh
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     gfortran \
-    libreadline6-dev \
+    libblas3 \
+    liblapack3 \
+    libuv1-dev \
+    libreadline-dev \
     libcurl4-openssl-dev \
     ca-certificates \
     libcairo2-dev \
@@ -163,7 +180,10 @@ RUN apt-get update && \
 #Preload hello world project
 COPY hello/* /srv/shiny-server/hello/
 #Prevent installation from hanging for multi-arch builds due to insufficient ram
-RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/', clean = TRUE, Ncpus = 4)"
+ARG PKG_CPUS=4
+# install.packages() exits 0 even when a package fails, so verify explicitly
+RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/', clean = TRUE, Ncpus = ${PKG_CPUS})" && \
+    R -e "stopifnot(all(c('shiny', 'Cairo') %in% rownames(installed.packages())))"
 
 ENTRYPOINT ["/etc/shiny-server/init.sh"]
 
@@ -185,8 +205,11 @@ RUN apt-get update && \
     libxml2-dev \
     libssl-dev \
     libfontconfig1-dev \
-    libgit2-dev && \
+    libgit2-dev \
+    libicu-dev && \
     rm -rf /var/lib/apt/lists/*
 
+ARG PKG_CPUS=4
 # installing devtools
-RUN R -e "install.packages('devtools', repos='http://cran.rstudio.com/', type='source', clean = TRUE, Ncpus = 4)"
+RUN R -e "install.packages('devtools', repos='http://cran.rstudio.com/', type='source', clean = TRUE, Ncpus = ${PKG_CPUS})" && \
+    R -e "stopifnot('devtools' %in% rownames(installed.packages()))"
