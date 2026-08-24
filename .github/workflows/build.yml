@@ -68,26 +68,36 @@ jobs:
           set -uo pipefail
           # Pull what we just published and verify the amd64 platform serves the hello app
           docker pull --platform linux/amd64 hvalev/shiny-server-arm:latest
+          # Same-network/DNS setup as in ci.yml: this host drops traffic
+          # between separate docker bridges, so run the smoke container on
+          # the runner's own network and address it by container name.
+          RUNNER_NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' gh-runner-shiny 2>/dev/null | awk '{print $1}')
           docker rm -f shiny-smoke-test >/dev/null 2>&1 || true
-          docker run -d --name shiny-smoke-test hvalev/shiny-server-arm:latest
-
-          # DooD: talk to the app through the container's bridge IP
-          IP=""
-          for i in $(seq 1 30); do
-            IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' shiny-smoke-test 2>/dev/null || true)
-            [ -n "$IP" ] && break
-            sleep 2
-          done
-          if [ -z "$IP" ]; then
-            echo "smoke test failed: container did not get an IP"
-            docker logs --tail 50 shiny-smoke-test || true
-            exit 1
+          if [ -n "$RUNNER_NET" ]; then
+            echo "running smoke container on runner network: $RUNNER_NET"
+            docker run -d --name shiny-smoke-test --network "$RUNNER_NET" hvalev/shiny-server-arm:latest
+            APP_URL="http://shiny-smoke-test:3838/hello/"
+          else
+            docker run -d --name shiny-smoke-test hvalev/shiny-server-arm:latest
+            IP=""
+            for i in $(seq 1 30); do
+              IP=$(docker inspect -f '{{(index .NetworkSettings.Networks "bridge").IPAddress}}' shiny-smoke-test 2>/dev/null | awk '{print $1}')
+              [ -n "$IP" ] && break
+              sleep 2
+            done
+            if [ -z "$IP" ]; then
+              echo "smoke test failed: container did not get an IP"
+              docker logs --tail 50 shiny-smoke-test || true
+              exit 1
+            fi
+            echo "container IP: $IP"
+            APP_URL="http://$IP:3838/hello/"
           fi
-          echo "container IP: $IP"
 
           ok=0
           for i in $(seq 1 90); do
-            if curl -sf "http://$IP:3838/hello/" -o /tmp/smoke-hello.html; then
+            # --max-time: never let a dead endpoint hang the job for hours
+            if curl -sf --max-time 30 "$APP_URL" -o /tmp/smoke-hello.html; then
               ok=1
               break
             fi
