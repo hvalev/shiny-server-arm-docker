@@ -1,7 +1,7 @@
 ###########################
 # Builder image
 ###########################
-FROM debian:trixie-20260518 AS builder
+FROM debian:trixie-20260803 AS builder
 
 ENV V_RStudio=R-4.6.1
 ENV V_ShinyServer=v1.5.23.1030
@@ -125,7 +125,7 @@ RUN make -j${BUILD_JOBS} install
 ###########################
 # Production image
 ###########################
-FROM debian:trixie-20260518 AS shiny
+FROM debian:trixie-20260803 AS shiny
 COPY --from=builder /usr/local/bin/R /usr/local/bin/R
 COPY --from=builder /usr/local/lib/R /usr/local/lib/R
 COPY --from=builder /usr/local/bin/Rscript /usr/local/bin/Rscript
