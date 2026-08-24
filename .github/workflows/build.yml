@@ -123,5 +123,5 @@ jobs:
         uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUBUNAME }}
-          password: ${{ secrets.DOCKERHUBPWD }}
+          password: ${{ secrets.DOCKERHUBTOKEN }}
           repository: hvalev/shiny-server-arm
