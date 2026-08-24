@@ -56,7 +56,7 @@ The following sections will explain how you can install libraries, import apps, 
 Libraries can be installed by modifying the ```init.sh``` file under ```~/shiny-server/conf```. It contains and will execute the ```R -e "install.packages(c('lib1','lib2',...))``` command the first time the container is started. Simply add the libraries you wish installed there. In order to avoid installing the same libraries on each restart, the script generates an ```init_done``` file and will not run if the file is present on the system. To add additional libraries in subsequent runs, delete the ```init_done``` file and add the new libraries to ```init.sh``` as before. Please note that installed libraries will persist between restarts as long as the container image is not removed or recreated.
 
 ### Adding and configuring apps
-Apps can be added to the ```~/shiny-server/apps``` folder and will be loaded into shiny-server. If you followed the steps in so far, the hello-world app will be accessible under ```http://host-ip:3838/hello```. You can add your own app by copying it over to the folder ```shiny-server/apps```, where it will be available under ```http://host-ip:3838/yourappfolder```. Be aware that each app will need to have its own configuration file under ```~/shiny-server/yourappfolder/.shiny_app.conf```. You can use the hello-world app as staging ground for building your new app. 
+Apps can be added to the ```~/shiny-server/apps``` folder and will be loaded into shiny-server. If you followed the steps in so far, the hello-world app will be accessible under ```http://host-ip:3838/hello```. You can add your own app by copying it over to the folder ```shiny-server/apps```, where it will be available under ```http://host-ip:3838/yourappfolder```. Each app can have an optional per-app configuration file under ```~/shiny-server/yourappfolder/.shiny_app.conf``` (note the underscore - that is the file name shiny-server looks for). When present, it is applied on top of the server configuration, so you can tune a single app (e.g. its timeouts) without touching the global settings. The hello-world app ships with one you can use as a reference, and as a staging ground for building your new app. 
 
 ### Configuring shiny-server
 Shiny servers' configuration file can be found under ```~/shiny-server/conf/shiny-server.conf```. The default settings should be sufficient, however you can also modify it according to your needs. The [documentation of shiny-server](https://docs.rstudio.com/shiny-server/) is always a good place to start, when you want to tune your installation.
@@ -65,7 +65,7 @@ Shiny servers' configuration file can be found under ```~/shiny-server/conf/shin
 If you run into any trouble along the way, it might be due to permission problems. You can try running the following command: ```chmod -R 777 ~/shiny-server/```.
 
 ## Build it yourself
-The Dockerfile implements a multi-stage build and will produce a functional 1GB shiny-server image equipped with all necessary libraries to build and install most R-packages. Additionally, it will leave a 4.5GB builder image behind post-build, which you can remove. Be aware that this will take at least 2 hours to build even on an SSD.
+The Dockerfile implements a multi-stage build and will produce a functional 1GB shiny-server image equipped with all necessary libraries to build and install most R-packages. The intermediate builder stage is not part of the final image; with modern BuildKit it only lives in the build cache, which you can clean up with ```docker builder prune```. Be aware that this will take at least 2 hours to build even on an SSD.
 
 Build the container with the following command:
 ```bash
@@ -92,8 +92,8 @@ Although you can install R libraries post-install, you could also bake those in 
 ```RUN R -e "install.packages(c('shiny', 'Cairo'), repos='http://cran.rstudio.com/')"```.
 Cairo is needed for the hello-world preloaded app. If it's missing the histogram won't be loaded.
 
-### Node.js (DEPRECATED since R4.5.2-S1.5.23.1030)
-I have written the [determine_arch.sh](https://github.com/hvalev/shiny-server-arm-docker/blob/master/determine_arch.sh) script, which automagically determines the architecture it's running on, fetches the appropriate node.js checksum and replaces it in the install-node.sh file. It should be future-proof as the reference node.js version is taken from the cloned shiny-server repository itself.
+### Node.js
+The image bundles Node.js, which shiny-server uses internally. The version is pinned in the Dockerfile (currently v22.23.2) and the matching tarball is downloaded for the architecture being built during the build. Node 22 is the newest release line that still provides linux-armv7l binaries; the newer LTS lines dropped them, and this image keeps supporting arm/v7 devices.
 
 ## Acknowledgements
 The following resources were very helpful in putting this together:

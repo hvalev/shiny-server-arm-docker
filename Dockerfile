@@ -87,14 +87,17 @@ RUN apt-get update && apt-get install -y \
 # Get the correct node version for the builder arch of the system
 ARG TARGETARCH
 RUN mkdir -p /shiny-server/ext/node
+# Node 22 ("Jod"), newest release that still ships linux-armv7l binaries
+# (Node 24+ dropped them). Maintenance LTS until April 2027.
+ENV V_Node=v22.23.2
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
-      curl -fsSL https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-x64.tar.xz \
+      curl -fsSL https://nodejs.org/dist/${V_Node}/node-${V_Node}-linux-x64.tar.xz \
       | tar -xJ -C /shiny-server/ext/node --strip-components=1; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
-      curl -fsSL https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-arm64.tar.xz \
+      curl -fsSL https://nodejs.org/dist/${V_Node}/node-${V_Node}-linux-arm64.tar.xz \
       | tar -xJ -C /shiny-server/ext/node --strip-components=1; \
     elif [ "$TARGETARCH" = "arm" ]; then \
-      curl -fsSL https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-armv7l.tar.xz \
+      curl -fsSL https://nodejs.org/dist/${V_Node}/node-${V_Node}-linux-armv7l.tar.xz \
       | tar -xJ -C /shiny-server/ext/node --strip-components=1; \
     else \
       echo "Unsupported architecture $TARGETARCH" && exit 1; \
@@ -178,7 +181,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 #Preload hello world project
-COPY hello/* /srv/shiny-server/hello/
+# Note: COPY hello/ (not hello/*) on purpose - the glob drops dotfiles and
+# the app's per-app config is hello/.shiny_app.conf (yes, with the
+# underscore - that's the name shiny-server 1.5.x looks for), so without
+# this the file would never make it into the image.
+COPY hello/ /srv/shiny-server/hello/
 #Prevent installation from hanging for multi-arch builds due to insufficient ram
 ARG PKG_CPUS=4
 # install.packages() exits 0 even when a package fails, so verify explicitly
