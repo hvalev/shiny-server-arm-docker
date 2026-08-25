@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Shiny Server Repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: rstudio/shiny-server
 
@@ -24,7 +24,7 @@ jobs:
           echo "release_tag=$tag" >> $GITHUB_OUTPUT
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Get Current Shiny Server Version
         id: shiny-version-current
