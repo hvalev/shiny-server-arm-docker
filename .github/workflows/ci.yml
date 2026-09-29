@@ -1,11 +1,9 @@
 name: ci
+# no pull_request trigger: every PR on this repo is a same-repo branch, so the
+# branch push already builds the head SHA and shows up as a check on the PR.
+# Having both triggers built every commit twice on the runner.
 on:
   push:
-    paths-ignore:
-      - 'README.md'
-    branches:
-      - '**'
-  pull_request:
     paths-ignore:
       - 'README.md'
     branches:
@@ -19,6 +17,11 @@ jobs:
   build:
     runs-on: self-hosted
     timeout-minutes: 4320
+    env:
+      # only master pushes may overwrite the shared cache: branch, PR and
+      # dependabot runs read it but never rewrite it (concurrent runs share one
+      # cache tag, and a PR-controlled workflow file could poison it)
+      CACHE_TO: ${{ github.ref == 'refs/heads/master' && github.actor != 'dependabot[bot]' && 'type=registry,ref=hvalev/shiny-server-buildcache:latest,mode=max' || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -39,6 +42,11 @@ jobs:
 
       - name: Login to Docker Hub
         uses: docker/login-action@v4
+        # runs triggered by dependabot[bot] (pushes to its branches and its PRs)
+        # never see GitHub Actions secrets: for those runs these names resolve
+        # from the Dependabot secret store, so a read-only Docker Hub token has
+        # to be mirrored there under the same names. Missing there -> empty
+        # inputs -> "Username and password required".
         with:
           username: ${{ secrets.DOCKERHUBUNAME }}
           password: ${{ secrets.DOCKERHUBTOKEN }}
@@ -51,7 +59,7 @@ jobs:
           platforms: linux/arm/v7,linux/arm64,linux/amd64
           target: shiny
           cache-from: type=registry,ref=hvalev/shiny-server-buildcache:latest
-          cache-to: type=registry,ref=hvalev/shiny-server-buildcache:latest,mode=max
+          cache-to: ${{ env.CACHE_TO }}
 
       - name: Build shiny with devtools (all platforms)
         uses: docker/build-push-action@v7
@@ -61,7 +69,7 @@ jobs:
           platforms: linux/arm/v7,linux/arm64,linux/amd64
           target: shiny-with-devtools
           cache-from: type=registry,ref=hvalev/shiny-server-buildcache:latest
-          cache-to: type=registry,ref=hvalev/shiny-server-buildcache:latest,mode=max
+          cache-to: ${{ env.CACHE_TO }}
 
       - name: Build amd64 image for smoke test
         uses: docker/build-push-action@v7
