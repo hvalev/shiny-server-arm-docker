@@ -20,7 +20,18 @@ jobs:
         id: shiny-version-new
         run: |
           git fetch --tags
-          tag=$(git describe --tags `git rev-list --tags --max-count=1` | cut -b 2-)
+          # an empty release_tag would slip past the version comparison below
+          # and make the find-replace step search for "", rewriting every file
+          commit=$(git rev-list --tags --max-count=1)
+          if [ -z "$commit" ]; then
+            echo "failed to find any tag in rstudio/shiny-server"
+            exit 1
+          fi
+          tag=$(git describe --tags --abbrev=0 "$commit" | cut -b 2-)
+          if [ -z "$tag" ]; then
+            echo "failed to determine latest shiny-server tag"
+            exit 1
+          fi
           echo "release_tag=$tag" >> $GITHUB_OUTPUT
 
       - name: Checkout
