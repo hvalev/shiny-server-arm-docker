@@ -13,6 +13,12 @@ jobs:
   buildx:
     runs-on: self-hosted
     timeout-minutes: 4320
+    env:
+      # workflow_dispatch resolves github.ref_name to the branch, so publishing
+      # :latest unconditionally let a manual test run replace the released image;
+      # :latest is reserved for R*-S* tag pushes, and the smoke test checks the
+      # tag this run actually produced
+      SMOKE_TAG: ${{ github.ref_type == 'tag' && 'latest' || github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -45,7 +51,7 @@ jobs:
           push: true
           tags: |
             hvalev/shiny-server-arm:${{ github.ref_name }}
-            hvalev/shiny-server-arm:latest
+            ${{ github.ref_type == 'tag' && 'hvalev/shiny-server-arm:latest' || '' }}
           cache-from: type=registry,ref=hvalev/shiny-server-buildcache:latest
           cache-to: type=registry,ref=hvalev/shiny-server-buildcache:latest,mode=max
 
@@ -59,7 +65,7 @@ jobs:
           push: true
           tags: |
             hvalev/shiny-server-arm:devtools-${{ github.ref_name }}
-            hvalev/shiny-server-arm:devtools-latest
+            ${{ github.ref_type == 'tag' && 'hvalev/shiny-server-arm:devtools-latest' || '' }}
           cache-from: type=registry,ref=hvalev/shiny-server-buildcache:latest
           cache-to: type=registry,ref=hvalev/shiny-server-buildcache:latest,mode=max
 
@@ -67,7 +73,7 @@ jobs:
         run: |
           set -uo pipefail
           # Pull what we just published and verify the amd64 platform serves the hello app
-          docker pull --platform linux/amd64 hvalev/shiny-server-arm:latest
+          docker pull --platform linux/amd64 hvalev/shiny-server-arm:${{ env.SMOKE_TAG }}
           # Same-network/DNS setup as in ci.yml: this host drops traffic
           # between separate docker bridges, so run the smoke container on
           # the runner's own network and address it by container name.
@@ -75,10 +81,10 @@ jobs:
           docker rm -f shiny-smoke-test >/dev/null 2>&1 || true
           if [ -n "$RUNNER_NET" ]; then
             echo "running smoke container on runner network: $RUNNER_NET"
-            docker run -d --name shiny-smoke-test --network "$RUNNER_NET" hvalev/shiny-server-arm:latest
+            docker run -d --name shiny-smoke-test --network "$RUNNER_NET" hvalev/shiny-server-arm:${{ env.SMOKE_TAG }}
             APP_URL="http://shiny-smoke-test:3838/hello/"
           else
-            docker run -d --name shiny-smoke-test hvalev/shiny-server-arm:latest
+            docker run -d --name shiny-smoke-test hvalev/shiny-server-arm:${{ env.SMOKE_TAG }}
             IP=""
             for i in $(seq 1 30); do
               IP=$(docker inspect -f '{{(index .NetworkSettings.Networks "bridge").IPAddress}}' shiny-smoke-test 2>/dev/null | awk '{print $1}')
