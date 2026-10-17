@@ -86,3 +86,25 @@ jobs:
             - `hvalev/shiny-server-arm:devtools-latest`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Confirm the tag scheduled a build
+        env:
+          GH_TOKEN: ${{ secrets.REPO_SCOPED_TOKEN }}
+          TAG: ${{ steps.rel.outputs.tag }}
+          EP: repos/${{ github.repository }}/actions/workflows/build.yml/runs
+        run: |
+          # build.yml fires on the tag push made above. A push authenticated as
+          # GITHUB_TOKEN, or a REPO_SCOPED_TOKEN that expired or lost its scope,
+          # is still accepted by git and leaves a release with no image.
+          SHA=$(git rev-list -1 "$TAG")
+          for i in $(seq 1 12); do
+            n=$(gh api "$EP" -f head_sha="$SHA" --jq .total_count || echo 0)
+            if [ "${n:-0}" -gt 0 ]; then
+              echo "build.yml scheduled for $TAG"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::no build run scheduled for $TAG ($SHA)." \
+            "Check REPO_SCOPED_TOKEN: expired, or missing contents: write."
+          exit 1
