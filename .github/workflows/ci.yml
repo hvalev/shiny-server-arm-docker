@@ -5,7 +5,12 @@ name: ci
 on:
   push:
     paths-ignore:
-      - 'README.md'
+      - '*.md'
+      - 'LICENSE'
+      - '.gitignore'
+      # a workflow-file edit cannot change the image, yet each one used to cost
+      # full three-arch cross-compiles on the single runner
+      - '.github/**'
     branches:
       - '**'
 
@@ -16,12 +21,18 @@ concurrency:
 jobs:
   build:
     runs-on: self-hosted
-    timeout-minutes: 4320
+    # generous for a qemu cross-build, but a wedged job must not sit on the only
+    # runner for days and starve a real release build
+    timeout-minutes: 900
     env:
       # only master pushes may overwrite the shared cache: branch, PR and
       # dependabot runs read it but never rewrite it (concurrent runs share one
       # cache tag, and a PR-controlled workflow file could poison it)
-      CACHE_TO: ${{ github.ref == 'refs/heads/master' && github.actor != 'dependabot[bot]' && 'type=registry,ref=hvalev/shiny-server-buildcache:latest,mode=max' || '' }}
+      CACHE_TO: >-
+        ${{ github.ref == 'refs/heads/master'
+        && github.actor != 'dependabot[bot]'
+        && 'type=registry,ref=hvalev/shiny-server-buildcache:latest,mode=max'
+        || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -63,6 +74,9 @@ jobs:
 
       - name: Build shiny with devtools (all platforms)
         uses: docker/build-push-action@v7
+        # published only by a release; on branch and dependabot pushes this
+        # doubles the cross-compile for no signal
+        if: github.ref == 'refs/heads/master'
         with:
           context: .
           builder: shiny-builder
@@ -91,17 +105,23 @@ jobs:
           # container on the runner's own network and talk to it by name via
           # docker's built-in DNS (the runner container name is fixed by the
           # runner's compose setup; fall back to bridge IP if unknown).
-          RUNNER_NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' gh-runner-shiny 2>/dev/null | awk '{print $1}')
+          NETFMT='{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}'
+          RUNNER_NET=$(docker inspect -f "$NETFMT" gh-runner-shiny 2>/dev/null \
+            | awk '{print $1}')
           docker rm -f shiny-smoke-test >/dev/null 2>&1 || true
           if [ -n "$RUNNER_NET" ]; then
             echo "running smoke container on runner network: $RUNNER_NET"
-            docker run -d --name shiny-smoke-test --network "$RUNNER_NET" hvalev/shiny-server-arm:ci-smoke
+            docker run -d --name shiny-smoke-test --network "$RUNNER_NET" \
+              hvalev/shiny-server-arm:ci-smoke
             APP_URL="http://shiny-smoke-test:3838/hello/"
           else
-            docker run -d --name shiny-smoke-test hvalev/shiny-server-arm:ci-smoke
+            docker run -d --name shiny-smoke-test \
+              hvalev/shiny-server-arm:ci-smoke
             IP=""
             for i in $(seq 1 30); do
-              IP=$(docker inspect -f '{{(index .NetworkSettings.Networks "bridge").IPAddress}}' shiny-smoke-test 2>/dev/null | awk '{print $1}')
+              IPFMT='{{(index .NetworkSettings.Networks "bridge").IPAddress}}'
+              IP=$(docker inspect -f "$IPFMT" shiny-smoke-test 2>/dev/null \
+                | awk '{print $1}')
               [ -n "$IP" ] && break
               sleep 2
             done
