@@ -25,6 +25,9 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          # A tag pushed with GITHUB_TOKEN never chain-triggers build.yml, so
+          # the release would sit untagged-but-unbuilt; push it as a PAT.
+          token: ${{ secrets.REPO_SCOPED_TOKEN }}
 
       - name: Read Versions
         id: versions
