@@ -4,7 +4,7 @@
 FROM debian:trixie-20261020 AS builder
 
 ENV V_RStudio=R-4.6.2
-ENV V_ShinyServer=v1.5.23.1030
+ENV V_ShinyServer=v1.5.24.1047
 
 # Parallelism for the native builds. Defaults are conservative (small ARM
 # devices); override for fast hosts, e.g. --build-arg R_BUILD_JOBS=16
