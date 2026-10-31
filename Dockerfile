@@ -3,7 +3,7 @@
 ###########################
 FROM debian:trixie-20261005 AS builder
 
-ENV V_RStudio=R-4.6.1
+ENV V_RStudio=R-4.6.2
 ENV V_ShinyServer=v1.5.23.1030
 
 # Parallelism for the native builds. Defaults are conservative (small ARM
