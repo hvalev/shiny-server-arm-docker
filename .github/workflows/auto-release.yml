@@ -20,6 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # the confirmation step lists workflow runs; an explicit permissions
+      # block makes everything else 'none', and without this the query is
+      # refused with 403
+      actions: read
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -89,22 +93,32 @@ jobs:
 
       - name: Confirm the tag scheduled a build
         env:
-          GH_TOKEN: ${{ secrets.REPO_SCOPED_TOKEN }}
+          # read-only lookup, so the job token is enough; keeping it off the
+          # PAT means an expired REPO_SCOPED_TOKEN cannot fake a missing build
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.rel.outputs.tag }}
           EP: repos/${{ github.repository }}/actions/workflows/build.yml/runs
         run: |
           # build.yml fires on the tag push made above. A push authenticated as
           # GITHUB_TOKEN, or a REPO_SCOPED_TOKEN that expired or lost its scope,
           # is still accepted by git and leaves a release with no image.
+          # A queued run counts: the one self-hosted runner means a build often
+          # waits hours for a slot, and it is listed the moment it is created.
           SHA=$(git rev-list -1 "$TAG")
-          for i in $(seq 1 12); do
-            n=$(gh api "$EP" -f head_sha="$SHA" --jq .total_count || echo 0)
+          for i in $(seq 1 30); do
+            # a failed query is a permissions problem, not a missing build, and
+            # reporting it as one called two good releases broken
+            if ! resp=$(gh api "$EP" -f head_sha="$SHA" 2>&1); then
+              echo "::error::cannot list build.yml runs for $SHA: $resp"
+              exit 1
+            fi
+            n=$(printf '%s' "$resp" | jq -r '.total_count // 0')
             if [ "${n:-0}" -gt 0 ]; then
-              echo "build.yml scheduled for $TAG"
+              echo "build.yml scheduled for $TAG ($n run(s))"
               exit 0
             fi
             sleep 10
           done
-          echo "::error::no build run scheduled for $TAG ($SHA)." \
-            "Check REPO_SCOPED_TOKEN: expired, or missing contents: write."
+          echo "::error::no build run scheduled for $TAG ($SHA) after 5 min;" \
+            "the tag push did not chain-trigger build.yml."
           exit 1
