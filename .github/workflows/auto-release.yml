@@ -106,9 +106,11 @@ jobs:
           # waits hours for a slot, and it is listed the moment it is created.
           SHA=$(git rev-list -1 "$TAG")
           for i in $(seq 1 30); do
-            # a failed query is a permissions problem, not a missing build, and
-            # reporting it as one called two good releases broken
-            if ! resp=$(gh api "$EP" -f head_sha="$SHA" 2>&1); then
+            # a failed query is a token or endpoint problem, never a missing
+            # build; reporting it as one called three good releases broken.
+            # -X GET matters: gh api promotes the request to POST the moment a
+            # -f field is passed, and POSTing this endpoint is a bare 404.
+            if ! resp=$(gh api -X GET "$EP" -f head_sha="$SHA" 2>&1); then
               echo "::error::cannot list build.yml runs for $SHA: $resp"
               exit 1
             fi
